@@ -34,7 +34,11 @@ class PRIMEIndicator:
 	self.isIntegrated = self.checkIntegrated()
 	self.ind.set_icon('intel')
 	if not self.isIntegrated:
+	    self.isDiscrete = self.checkDiscrete()
 	    self.ind.set_icon('nvidia')
+	    if not self.isDiscrete:
+	   	self.isUnknown = True
+    	    	self.ind.set_icon('unknown')
 	self.menu_setup()
         self.ind.set_menu(self.menu)
 
@@ -60,12 +64,17 @@ class PRIMEIndicator:
 	self.menu.append(self.settings_item)
 
     def switch(self, dude):
-	self.showRebootDialog()
-	if self.isIntegrated:
-	    self.switchToDiscrete()
+	if self.isUnknown:
 	else:
-	    self.switchToIntegrated()
-	
+	  self.showRebootDialog()
+	  if self.isIntegrated:
+	      self.switchToDiscrete()
+	  else:
+	      if self.isDiscrete:
+	      	self.switchToIntegrated()
+	      else:
+	  	if self.isUnknown:
+		self.unknown()	
 
     def opensettings(self, dude):
 	os.system("/usr/bin/nvidia-settings")
@@ -90,6 +99,13 @@ class PRIMEIndicator:
 	else:
 	    return False
 
+    def checkDiscrete(self):
+	stat, out = commands.getstatusoutput("/usr/bin/prime-select query")
+	if "nvidia" in out:
+	    return True
+	else:
+	    return False
+
     def rendererString(self):
 	stat, out = commands.getstatusoutput('glxinfo | grep "OpenGL renderer string"')
 	out = out.replace("OpenGL renderer string", "Using")
@@ -100,6 +116,16 @@ class PRIMEIndicator:
 
     def switchToDiscrete(self):
 	os.system("sudo /usr/lib/primeindicator/dgpuon")
+
+    def unknown(self):
+	self.isIntegrated = self.checkIntegrated()
+		self.ind.set_icon('intel')
+		if not self.isIntegrated:
+		    self.isDiscrete = self.checkDiscrete()
+		    self.ind.set_icon('nvidia')
+		    if not self.isDiscrete:
+	  	 	self.isUnknown = True
+    	    		self.ind.set_icon('unknown')
 
     def main(self):
         gtk.main()
