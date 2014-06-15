@@ -16,7 +16,7 @@ Make sure you have the NVIDIA driver >=331.20 installed and the additional packa
 In case the indicator doesn't start because it is missing the python module "appindicator",
 again, make sure to install missing packages. To install all needed dependencies:
 
-sudo apt-get install nvidia-prime nvidia-331 nvidia-settings python-appindicator
+sudo apt-get install nvidia-prime nvidia-331 nvidia-settings python-appindicator mesa-utils
 
 
 How to install
