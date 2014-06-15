@@ -1,5 +1,5 @@
 #!/bin/bash
-function removePrime    {
+function removePrimeIndicator    {
     #Kill running prime-indicator
     ps aux | grep /usr/bin/prime-indicator | grep -v grep | awk '{print $2}' | xargs kill
     rm /usr/bin/prime-indicator
@@ -14,6 +14,6 @@ else
     read -n1 -p "Remove PRIME Indicator? (y/N) "
     echo
     if [[ $REPLY = [yY] ]]; then
-       removePrime
+       removePrimeIndicator
     fi
 fi
