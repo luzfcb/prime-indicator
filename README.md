@@ -29,6 +29,6 @@ sudo ./setup.sh
 How to remove
 ==============
 
-chmod a+x uninstall.sh
+chmod a+x remove.sh
 
-sudo ./uninstall.sh
+sudo ./remove.sh
