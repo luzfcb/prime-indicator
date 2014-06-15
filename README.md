@@ -25,3 +25,10 @@ How to install
 chmod a+x setup.sh
 
 sudo ./setup.sh
+
+How to remove
+==============
+
+chmod a+x uninstall.sh
+
+sudo ./uninstall.sh
