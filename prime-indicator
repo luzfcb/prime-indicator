@@ -75,6 +75,7 @@ class PRIMEIndicator:
 	      else:
 	  	if self.isUnknown:
 		self.unknown()	
+	    self.switchToIntegrated()
 
     def opensettings(self, dude):
 	os.system("/usr/bin/nvidia-settings")
