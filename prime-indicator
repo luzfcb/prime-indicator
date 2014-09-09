@@ -64,17 +64,15 @@ class PRIMEIndicator:
 	self.menu.append(self.settings_item)
 
     def switch(self, dude):
-	if self.isUnknown:
+	self.showRebootDialog()
+	if self.isIntegrated:
+	    self.switchToDiscrete()
 	else:
-	  self.showRebootDialog()
-	  if self.isIntegrated:
-	      self.switchToDiscrete()
-	  else:
-	      if self.isDiscrete:
-	      	self.switchToIntegrated()
-	      else:
-	  	if self.isUnknown:
-		self.unknown()	
+	    if self.isDiscrete:
+	    	self.switchToIntegrated()
+	    else:
+		if self.isUnknown:
+			self.unknown()
 	    self.switchToIntegrated()
 
     def opensettings(self, dude):
@@ -120,13 +118,13 @@ class PRIMEIndicator:
 
     def unknown(self):
 	self.isIntegrated = self.checkIntegrated()
-		self.ind.set_icon('intel')
-		if not self.isIntegrated:
-		    self.isDiscrete = self.checkDiscrete()
-		    self.ind.set_icon('nvidia')
-		    if not self.isDiscrete:
-	  	 	self.isUnknown = True
-    	    		self.ind.set_icon('unknown')
+	self.ind.set_icon('intel')
+	if not self.isIntegrated:
+	    self.isDiscrete = self.checkDiscrete()
+	    self.ind.set_icon('nvidia')
+	    if not self.isDiscrete:
+  	 	self.isUnknown = True
+    	    	self.ind.set_icon('unknown')
 
     def main(self):
         gtk.main()
