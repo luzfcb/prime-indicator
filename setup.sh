@@ -26,8 +26,7 @@ else
 	chmod 755 /usr/bin/prime-indicator
 	cp igpuon /usr/lib/primeindicator/
 	cp dgpuon /usr/lib/primeindicator/
-	cp intel.png /usr/lib/primeindicator/
-	cp nvidia.png /usr/lib/primeindicator/
+	cp *.png /usr/lib/primeindicator/
 	chmod a+r /usr/lib/primeindicator/*.png
 	chown root:root /usr/lib/primeindicator/igpuon
 	chown root:root /usr/lib/primeindicator/dgpuon
