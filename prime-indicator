@@ -67,13 +67,10 @@ class PRIMEIndicator:
 	self.showRebootDialog()
 	if self.isIntegrated:
 	    self.switchToDiscrete()
-	else:
-	    if self.isDiscrete:
+	if self.isDiscrete:
 	    	self.switchToIntegrated()
-	    else:
-		if self.isUnknown:
-			self.unknown()
-	    self.switchToIntegrated()
+	if self.isUnknown:
+	    self.unknown()
 
     def opensettings(self, dude):
 	os.system("/usr/bin/nvidia-settings")
