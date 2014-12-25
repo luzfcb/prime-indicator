@@ -46,9 +46,9 @@ else
 	else
 		rm -f $HOME/.config/autostart/prime-indicator.desktop
 	fi
+	read -n1 -p "Would you like to start prime-indicator now? (Y/N) "
 	echo 
-	echo "Would you like to start prime-indicator now? (Y/N)"
 	if [[ $REPLY == [yY] ]]; then
-		/usr/bin/prime-indicator
+		/usr/bin/prime-indicator &
 	fi
 fi
