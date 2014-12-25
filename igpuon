@@ -18,3 +18,4 @@
 
 prime-select intel
 sync
+gnome-session-quit --logout --no-prompt
