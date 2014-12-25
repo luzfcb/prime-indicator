@@ -124,9 +124,6 @@ class PRIMEIndicator:
   	 	self.isUnknown = True
     	    	self.ind.set_icon('unknown')
 
-    def logout(self):
-        os.system('gnome-session-quit --logout --no-prompt')
-
     def main(self):
         gtk.main()
 
