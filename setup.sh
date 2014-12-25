@@ -37,7 +37,7 @@ else
 
 	read -n1 -p "Autostart PRIME Indicator? (y/N) "
 	echo 
-	echo "Installing under user: $USER"
+	echo "Installing under user $USER"
 	if [[ $REPLY == [yY] ]]; then
 		mkdir -p $HOME/.config/autostart
 		cp prime-indicator.desktop $HOME/.config/autostart
