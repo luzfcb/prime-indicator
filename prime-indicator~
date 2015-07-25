@@ -71,7 +71,6 @@ class PRIMEIndicator:
 	  else:
 	      if self.isDiscrete:
 	          self.switchToIntegrated()
-	      else:
 	          if self.isUnknown:
 	              self.unknown()
 	  self.logout()

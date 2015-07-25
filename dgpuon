@@ -18,4 +18,3 @@
 
 prime-select nvidia
 sync
-gnome-session-quit --logout --no-prompt
