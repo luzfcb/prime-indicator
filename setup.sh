@@ -20,10 +20,10 @@ if [[ $EUID -ne 0 ]]; then
 	echo "This script must be run using sudo" 2>&1
 	exit 1
 else
-	mkdir -p /usr/lib/primeindicator
 	cp prime-indicator /usr/bin/
 	chown root:root /usr/bin/prime-indicator
 	chmod 755 /usr/bin/prime-indicator
+	mkdir -p /usr/lib/primeindicator
 	cp igpuon /usr/lib/primeindicator/
 	cp dgpuon /usr/lib/primeindicator/
 	cp *.png /usr/lib/primeindicator/
@@ -35,14 +35,20 @@ else
 	cp prime-indicator-sudoers /etc/sudoers.d/
 	chmod 644 /etc/sudoers.d/prime-indicator-sudoers
 
-	read -n1 -p "Autostart PRIME Indicator? (y/N) "
+	read -n1 -p "Autostart prime-indicator? (y/N) "
 	echo $USER
 	if [[ $REPLY == [yY] ]]; then
 		mkdir -p $HOME/.config/autostart
 		cp prime-indicator.desktop $HOME/.config/autostart
-        chown $SUDO_USER:$SUDO_USER $HOME/.config/autostart
-        chown $SUDO_USER:$SUDO_USER $HOME/.config/autostart/prime-indicator.desktop
+        	chown $SUDO_USER:$SUDO_USER $HOME/.config/autostart
+        	chown $SUDO_USER:$SUDO_USER $HOME/.config/autostart/prime-indicator.desktop
 	else
 		rm -f $HOME/.config/autostart/prime-indicator.desktop
+	fi
+
+	read -n1 -p "Start prime-indicator now? (y/N) "
+	echo $USER
+	if [[ $REPLY == [yY] ]]; then
+		nohup /usr/bin/prime-indicator &
 	fi
 fi
