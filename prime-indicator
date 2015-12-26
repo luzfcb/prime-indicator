@@ -14,7 +14,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
 
 import gtk
 import appindicator
@@ -23,107 +24,114 @@ import commands
 import gtk
 import sys
 
+
 class PRIMEIndicator:
+
     def __init__(self):
-	self.ind = appindicator.Indicator("PRIME Indicator",
-                                           "indicator-messages",
-                                           appindicator.CATEGORY_APPLICATION_STATUS)
-	self.ind.set_status(appindicator.STATUS_ACTIVE)
-	self.ind.set_attention_icon("indicator-messages-new")
-	self.ind.set_icon_theme_path("/usr/lib/primeindicator/")
-	self.isIntegrated = self.checkIntegrated()
-	self.ind.set_icon('intel')
-	if not self.isIntegrated:
-	    self.isDiscrete = self.checkDiscrete()
-	    self.ind.set_icon('nvidia')
-	    if not self.isDiscrete:
-	   	self.isUnknown = True
-    	    	self.ind.set_icon('unknown')
-	self.menu_setup()
+        self.ind = appindicator.Indicator("PRIME Indicator",
+                                          "indicator-messages",
+                                          appindicator.CATEGORY_APPLICATION_STATUS)
+        self.ind.set_status(appindicator.STATUS_ACTIVE)
+        self.ind.set_attention_icon("indicator-messages-new")
+        self.ind.set_icon_theme_path("/usr/lib/primeindicator/")
+        self.isIntegrated = self.check_integrated()
+        self.ind.set_icon('intel')
+        if not self.isIntegrated:
+            self.isDiscrete = self.check_discrete()
+            self.ind.set_icon('nvidia')
+            if not self.isDiscrete:
+                self.isUnknown = True
+                self.ind.set_icon('unknown')
+        self.menu_setup()
         self.ind.set_menu(self.menu)
 
     def menu_setup(self):
         self.menu = gtk.Menu()
-	self.info_item = gtk.MenuItem(self.rendererString())
-	self.info_item.set_sensitive(False)
-	self.info_item.show()
-	self.seperator_item = gtk.SeparatorMenuItem()
-	self.seperator_item.show()
-	self.switch_item = gtk.MenuItem("Quick switch graphics ...")
-	self.switch_item.connect("activate", self.switch)
-	self.switch_item.show()
-	self.seperator2_item = gtk.SeparatorMenuItem()
-	self.seperator2_item.show()
-	self.settings_item = gtk.MenuItem("Open NVIDIA Settings")
+        self.info_item = gtk.MenuItem(self.renderer_string())
+        self.info_item.set_sensitive(False)
+        self.info_item.show()
+        self.seperator_item = gtk.SeparatorMenuItem()
+        self.seperator_item.show()
+        self.switch_item = gtk.MenuItem("Quick switch graphics ...")
+        self.switch_item.connect("activate", self.switch)
+        self.switch_item.show()
+        self.seperator2_item = gtk.SeparatorMenuItem()
+        self.seperator2_item.show()
+        self.settings_item = gtk.MenuItem("Open NVIDIA Settings")
         self.settings_item.connect("activate", self.opensettings)
         self.settings_item.show()
-	self.menu.append(self.info_item)
-	self.menu.append(self.seperator_item)
-	self.menu.append(self.switch_item)
-	self.menu.append(self.seperator2_item)
-	self.menu.append(self.settings_item)
+        self.menu.append(self.info_item)
+        self.menu.append(self.seperator_item)
+        self.menu.append(self.switch_item)
+        self.menu.append(self.seperator2_item)
+        self.menu.append(self.settings_item)
 
     def switch(self, dude):
-	response = self.showRebootDialog()
-	if response != gtk.RESPONSE_CANCEL:
-	  if self.isIntegrated:
-	      self.switchToDiscrete()
-	  else:
-	      if self.isDiscrete:
-	          self.switchToIntegrated()
-	      else:
-	          if self.isUnknown:
-	              self.unknown()
-	  self.logout()
+        response = self.show_reboot_dialog()
+        if response != gtk.RESPONSE_CANCEL:
+            if self.isIntegrated:
+                self.switch_to_discrete()
+            else:
+                if self.isDiscrete:
+                    self.switch_to_integrated()
+                else:
+                    if self.isUnknown:
+                        self.unknown()
+            self.logout()
+
+    def unknown(self):
+        print("unknown gpu device")
 
     def opensettings(self, dude):
-	os.system("/usr/bin/nvidia-settings")
+        os.system("/usr/bin/nvidia-settings")
 
-    def showRebootDialog(self):
-	message = "You will be logged out now."
-	dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
-                                       gtk.BUTTONS_NONE, message)
-	dialog.set_deletable(False)
-	dialog.connect('delete_event', self.ignore)
-	dialog.add_button(gtk.STOCK_OK, gtk.RESPONSE_OK)
-	dialog.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
-	response = dialog.run()
-	dialog.destroy()
-	return response
+    def show_reboot_dialog(self):
+        message = "You will be logged out now."
+        dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
+                                   gtk.BUTTONS_NONE, message)
+        dialog.set_deletable(False)
+        dialog.connect('delete_event', self.ignore)
+        dialog.add_button(gtk.STOCK_OK, gtk.RESPONSE_OK)
+        dialog.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+        response = dialog.run()
+        dialog.destroy()
+        return response
 
     def ignore(*args):
-	return gtk.TRUE
+        return gtk.TRUE
 
-    def checkIntegrated(self):
-	stat, out = commands.getstatusoutput("/usr/bin/prime-select query")
-	if "intel" in out:
-	    return True
-	else:
-	    return False
+    def check_integrated(self):
+        stat, out = commands.getstatusoutput("/usr/bin/prime-select query")
+        if "intel" in out:
+            return True
+        else:
+            return False
 
-    def checkDiscrete(self):
-	stat, out = commands.getstatusoutput("/usr/bin/prime-select query")
-	if "nvidia" in out:
-	    return True
-	else:
-	    return False
+    def check_discrete(self):
+        stat, out = commands.getstatusoutput("/usr/bin/prime-select query")
+        if "nvidia" in out:
+            return True
+        else:
+            return False
 
-    def rendererString(self):
-	stat, out = commands.getstatusoutput('glxinfo | grep "OpenGL renderer string"')
-	out = out.replace("OpenGL renderer string", "Using")
-	return out
+    def renderer_string(self):
+        stat, out = commands.getstatusoutput(
+            'glxinfo | grep "OpenGL renderer string"')
+        out = out.replace("OpenGL renderer string", "Using")
+        return out
 
-    def switchToIntegrated(self):
-	os.system("sudo /usr/lib/primeindicator/igpuon")
+    def switch_to_integrated(self):
+        os.system("sudo /usr/lib/primeindicator/igpuon")
 
-    def switchToDiscrete(self):
-	os.system("sudo /usr/lib/primeindicator/dgpuon")
+    def switch_to_discrete(self):
+        os.system("sudo /usr/lib/primeindicator/dgpuon")
 
     def logout(self):
         os.system('gnome-session-quit --logout --no-prompt')
 
     def main(self):
         gtk.main()
+
 
 if __name__ == "__main__":
     indicator = PRIMEIndicator()
