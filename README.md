@@ -1,27 +1,41 @@
 PRIME Indicator
-==============
-Indicator applet for Ubuntu 14.04 laptop users with NVIDIA/Intel switchable graphics
-This indicator has only been tested on Ubuntu 14.04 but should be working just as well
-on 12.04 with the newest hardware enablement stack.
-Apply Google magic in case you want to use this on a version other than 14.04.
-
-This indicator applet allows owners of laptops with NVIDIA/Intel hybrid graphics to
-quickly switch between the graphics cards and log out from within the Unity top panel in seconds.
+===============
+Indicator applet for Ubuntu 14.04 and higher laptop users with NVIDIA/Intel hybrid GPUs,
+allowing quick switch between the GPUs in matter of seconds.
+It has been tested on Ubuntu 14.04 and 16.04 only, but should be working just as well
+on any Ubuntu distribution, more recent than 12.04, including Xubuntu, Kubuntu and Lubuntu flavours.
+Ubuntu 12.04 users should also have no problems, as long if installing with the newest hardware enablement stack.
 
 
 Prerequisites
-==============
-You have to have a few packages installed on your Ubuntu box to take advantage of this indicator.
-Make sure you have the NVIDIA driver >=331.20 installed and the additional package called "nvidia-prime".
-In case the indicator doesn't start because it is missing the python module "appindicator",
-again, make sure to install missing packages. If the indicator contains a glxinfo error message, you are missing the mesa-utils package. To install all needed dependencies:
+=============
+Make sure you have installed and enabled:
 
-sudo apt-get install nvidia-prime nvidia-331 nvidia-settings python-appindicator mesa-utils
+* NVIDIA driver, version 331.20 or higher
+* NVIDIA's additional package, `nvidia-prime`
+* `mesa-utils` package
+* `python-appindicator` package
+
+Or simply run the following, which will install all dependencies and the latest NVIDIA driver for your GPU.
+```
+sudo apt-get install nvidia-prime nvidia-settings python-appindicator mesa-utils
+sudo apt-get install $(sudo ubuntu-drivers devices | grep -o nvidia-[[:digit:]]*)
+```
 
 
-How to install
-==============
+Troubleshooting
+===============
 
+### `appindicator` module missing
+Install the `python-appindicator` package.
+
+### Couldn't find RGB GLX visual or fbconfig
+Install the `mesa-utils` package.
+
+
+Installation
+============
+```shell
 chmod a+x setup.sh
-
 sudo ./setup.sh
+```
