@@ -32,7 +32,7 @@ class PRIMEIndicator:
         self.ind.set_icon_theme_path("/usr/lib/primeindicator/")
         self.is_integrated = self.check_integrated()
         self.script = "sudo /usr/lib/primeindicator/gpuswitcher"
-        self.config_file = "~/.config/prime-indicator/use_dark_icons"
+        self.config_file = os.getenv("HOME") + "/.config/prime-indicator/use_dark_icons"
         self.switch_icon('intel')
         if self.is_integrated:
             self.turn_nv_off()
