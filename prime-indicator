@@ -109,12 +109,12 @@ class PRIMEIndicator:
                     raise
         with open(self.config_file, "w") as f:
             if icon_dark:
-                if not icon_name.endswith("-dark"):
-                    icon_name += "-dark"
+                if not icon_name.endswith("dk"):
+                    icon_name += "dk"
                 f.write("true")
             else:
-                if icon_name.endswith("-dark"):
-                    icon_name = icon_name[:-5]
+                if icon_name.endswith("dk"):
+                    icon_name = icon_name[:-2]
                 f.write("false")
         self.ind.set_icon(icon_name)
         try:

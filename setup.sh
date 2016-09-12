@@ -28,8 +28,8 @@ chmod 755 /usr/bin/prime-indicator
 cp gpuswitcher /usr/lib/primeindicator/
 cp intel.png /usr/lib/primeindicator/
 cp nvidia.png /usr/lib/primeindicator/
-cp intel-dark.png /usr/lib/primeindicator/
-cp nvidia-dark.png /usr/lib/primeindicator/
+cp inteldk.png /usr/lib/primeindicator/
+cp nvidiadk.png /usr/lib/primeindicator/
 chmod a+r /usr/lib/primeindicator/*.png
 chown root:root /usr/lib/primeindicator/gpuswitcher
 chmod a+x /usr/lib/primeindicator/gpuswitcher
