@@ -25,13 +25,14 @@ mkdir -p /usr/lib/primeindicator
 cp prime-indicator /usr/bin/
 chown root:root /usr/bin/prime-indicator
 chmod 755 /usr/bin/prime-indicator
-cp igpuon /usr/lib/primeindicator/
-cp dgpuon /usr/lib/primeindicator/
+cp gpuswitcher /usr/lib/primeindicator/
 cp intel.png /usr/lib/primeindicator/
 cp nvidia.png /usr/lib/primeindicator/
+cp intel-dark.png /usr/lib/primeindicator/
+cp nvidia-dark.png /usr/lib/primeindicator/
 chmod a+r /usr/lib/primeindicator/*.png
-chown root:root /usr/lib/primeindicator/*gpuon
-chmod a+x /usr/lib/primeindicator/*gpuon
+chown root:root /usr/lib/primeindicator/gpuswitcher
+chmod a+x /usr/lib/primeindicator/gpuswitcher
 cp prime-indicator-sudoers /etc/sudoers.d/
 chmod 644 /etc/sudoers.d/prime-indicator-sudoers
 

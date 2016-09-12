@@ -1,1 +1,1 @@
-%sudo ALL=NOPASSWD: /usr/lib/primeindicator/igpuon, /usr/lib/primeindicator/dgpuon
+%sudo ALL=NOPASSWD: /usr/lib/primeindicator/gpuswitcher

@@ -16,5 +16,21 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-prime-select intel
-sync
+if [[ $1 == "intel" ]]
+then
+    prime-select intel
+    sync
+else
+    if [[ -z $2 ]]
+    then
+        prime-select nvidia
+        sync
+    elif [[ $2 == "on" ]]
+    then
+        modprobe nvidia_drm nvidia_modeset nvidia_uvm nvidia
+        tee /proc/acpi/bbswitch <<< ON
+    else
+        rmmod nvidia_drm nvidia_modeset nvidia_uvm nvidia
+        tee /proc/acpi/bbswitch <<< OFF
+    fi
+fi
