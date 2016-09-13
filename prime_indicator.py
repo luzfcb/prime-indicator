@@ -29,7 +29,8 @@ class PRIMEIndicator:
     def __init__(self):
         self.ind = appindicator.Indicator("PRIME Indicator",
                                           "indicator-messages",
-                                          appindicator.CATEGORY_APPLICATION_STATUS)
+                                          appindicator.
+                                          CATEGORY_APPLICATION_STATUS)
         self.ind.set_status(appindicator.STATUS_ACTIVE)
         self.ind.set_attention_icon("indicator-messages-new")
         self.ind.set_icon_theme_path("/usr/lib/primeindicator/")
