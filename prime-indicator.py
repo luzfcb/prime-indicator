@@ -14,12 +14,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
 
-import gtk
 import appindicator
-import os
 import commands
+import gtk
+import os
+
 
 class PRIMEIndicator:
 
@@ -32,7 +34,8 @@ class PRIMEIndicator:
         self.ind.set_icon_theme_path("/usr/lib/primeindicator/")
         self.is_integrated = self.check_integrated()
         self.script = "sudo /usr/lib/primeindicator/gpuswitcher"
-        self.config_file = os.getenv("HOME") + "/.config/prime-indicator/use_dark_icons"
+        self.config_file = os.getenv(
+            "HOME") + "/.config/prime-indicator/use_dark_icons"
         self.switch_icon('intel')
         if self.is_integrated:
             self.turn_nv_off()
@@ -65,7 +68,8 @@ class PRIMEIndicator:
             self.switch_nvinfo_item.show()
             self.separator_nvinfo_item.show()
             self.separator2_nvinfo_item.show()
-        self.icon_item = gtk.MenuItem(self.get_switch_icons_label(self.check_dark_icons()))
+        self.icon_item = gtk.MenuItem(
+            self.get_switch_icons_label(self.check_dark_icons()))
         self.icon_item.connect("activate", self.invert_icon_color)
         self.icon_item.show()
         self.separator3_item = gtk.SeparatorMenuItem()
@@ -85,7 +89,7 @@ class PRIMEIndicator:
         self.menu.append(self.separator3_item)
         self.menu.append(self.settings_item)
 
-    def get_switch_icons_label(self, icon_dark = False):
+    def get_switch_icons_label(self, icon_dark=False):
         return "Switch to " + ("light" if icon_dark else "dark") + " icons"
 
     def switch(self, dude):
@@ -95,12 +99,13 @@ class PRIMEIndicator:
             self.logout()
 
     def invert_icon_color(self, dude):
-        self.switch_icon_color(self.ind.get_icon(), not self.check_dark_icons())
+        self.switch_icon_color(
+            self.ind.get_icon(), not self.check_dark_icons())
 
     def switch_icon(self, icon_name):
         self.switch_icon_color(icon_name, self.check_dark_icons())
-                    
-    def switch_icon_color(self, icon_name, icon_dark = False):
+
+    def switch_icon_color(self, icon_name, icon_dark=False):
         if not os.path.exists(os.path.dirname(self.config_file)):
             try:
                 os.makedirs(os.path.dirname(self.config_file))
@@ -121,7 +126,7 @@ class PRIMEIndicator:
             self.icon_item.set_label(self.get_switch_icons_label(icon_dark))
         except AttributeError:
             pass
-    
+
     def check_dark_icons(self):
         icon_dark = False
         if not os.path.exists(os.path.dirname(self.config_file)):
@@ -161,7 +166,8 @@ class PRIMEIndicator:
             return False
 
     def renderer_string(self):
-        stat, out = commands.getstatusoutput('glxinfo | grep "OpenGL renderer string"')
+        stat, out = commands.getstatusoutput(
+            'glxinfo | grep "OpenGL renderer string"')
         out = out.replace("OpenGL renderer string", "Using")
         return out
 
@@ -170,7 +176,7 @@ class PRIMEIndicator:
 
     def nv_power_switch_string(self):
         return "Force NVIDIA GPU to power " + ("OFF" if self.nv_power else "ON")
-        
+
     def is_nvidia_on(self):
         stat, out = commands.getstatusoutput('cat /proc/acpi/bbswitch')
         return out.endswith("ON")
@@ -180,12 +186,12 @@ class PRIMEIndicator:
             os.system(self.script + " nvidia")
         else:
             os.system(self.script + " intel")
-    
+
     def switch_nv_power(self, dude):
         if self.nv_power:
             self.turn_nv_off()
         else:
-            self.turn_nv_on()        
+            self.turn_nv_on()
 
     def turn_nv_off(self):
         os.system(self.script + " nvidia off")
