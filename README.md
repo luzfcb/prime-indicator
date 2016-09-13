@@ -39,6 +39,9 @@ Install the `python-appindicator` package.
 ### Couldn't find RGB GLX visual or fbconfig
 Install the `mesa-utils` package.
 
+### `prime-indicator` only shows NVIDIA's logo
+If you're using `UEFI`, try disabling `Secure Boot` as NVIDIA's proprietary driver does NOT work with `Secure Boot` enabled.
+
 
 Installation
 ============
