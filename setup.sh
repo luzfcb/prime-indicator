@@ -26,11 +26,8 @@ cp prime-indicator /usr/bin/
 chown root:root /usr/bin/prime-indicator
 chmod 755 /usr/bin/prime-indicator
 cp gpuswitcher /usr/lib/primeindicator/
-cp intel.png /usr/lib/primeindicator/
-cp nvidia.png /usr/lib/primeindicator/
-cp inteldk.png /usr/lib/primeindicator/
-cp nvidiadk.png /usr/lib/primeindicator/
-chmod a+r /usr/lib/primeindicator/*.png
+cp *.svg /usr/lib/primeindicator/
+chmod a+r /usr/lib/primeindicator/*.svg
 chown root:root /usr/lib/primeindicator/gpuswitcher
 chmod a+x /usr/lib/primeindicator/gpuswitcher
 cp prime-indicator-sudoers /etc/sudoers.d/
