@@ -19,6 +19,7 @@
 
 import appindicator
 import commands
+import errno
 import gtk
 import os
 
@@ -155,30 +156,32 @@ class PRIMEIndicator:
         dialog.destroy()
         return response
 
-    def ignore(*args):
+    def ignore(self, *args):
         return gtk.TRUE
 
     def check_integrated(self):
-        stat, out = commands.getstatusoutput("/usr/bin/prime-select query")
+        out = commands.getoutput("/usr/bin/prime-select query")
         if "intel" in out:
             return True
         else:
             return False
 
     def renderer_string(self):
-        stat, out = commands.getstatusoutput(
+        out = commands.getoutput(
             'glxinfo | grep "OpenGL renderer string"')
         out = out.replace("OpenGL renderer string", "Using")
         return out
 
     def nv_power_string(self):
-        return "NVIDIA GPU is powered " + ("ON" if self.nv_power else "OFF")
+        return "NVIDIA GPU is powered " + \
+            ("ON" if self.nv_power else "OFF")
 
     def nv_power_switch_string(self):
-        return "Force NVIDIA GPU to power " + ("OFF" if self.nv_power else "ON")
+        return "Force NVIDIA GPU to power " + \
+            ("OFF" if self.nv_power else "ON")
 
     def is_nvidia_on(self):
-        stat, out = commands.getstatusoutput('cat /proc/acpi/bbswitch')
+        out = commands.getoutput('cat /proc/acpi/bbswitch')
         return out.endswith("ON")
 
     def switch_gpu(self):
