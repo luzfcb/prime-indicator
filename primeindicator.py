@@ -61,7 +61,7 @@ class PRIMEIndicator:
             if self.pm_enabled:
                 self.turn_nv_off()
         elif self.is_nvidia():
-            self.switch_icon("nvidia")
+            self.indicator.set_icon("nvidia")
             self.turn_nv_on()
 
     def menu_setup(self):
