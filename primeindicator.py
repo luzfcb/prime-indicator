@@ -50,7 +50,8 @@ class PRIMEIndicator:
         self.pm_enabled = self.config.get(
             "PowerManagement", "enabled").strip().lower() == "true"
 
-        self.query_result = commands.getoutput("/usr/bin/prime-select query")
+        self.query_result = commands.getoutput(
+            "/usr/bin/prime-select query").lower()
 
         self.nv_power = self.is_nvidia_on()
 
@@ -67,55 +68,50 @@ class PRIMEIndicator:
     def menu_setup(self):
         self.menu = gtk.Menu()
 
-        self.info_item = gtk.MenuItem(self.renderer_string())
-        self.info_item.show()
-        self.info_item.set_sensitive(False)
-        self.separator_item = gtk.SeparatorMenuItem()
-        self.separator_item.show()
+        self.info_in_use = gtk.MenuItem(self.renderer_string())
+        self.info_in_use.set_sensitive(False)
 
-        self.switch_item = gtk.MenuItem("Quick switch graphics ...")
-        self.switch_item.connect("activate", self.switch)
-        self.switch_item.show()
-        self.separator2_item = gtk.SeparatorMenuItem()
-        self.separator2_item.show()
+        self.switch_in_use = gtk.MenuItem("Quick switch graphics ...")
+        self.switch_in_use.connect("activate", self.switch)
+        self.separator_section_in_use = gtk.SeparatorMenuItem()
 
-        self.info_nv_pm_item = gtk.MenuItem()
-        self.info_nv_pm_item.set_sensitive(False)
-        self.separator_nv_pm_item = gtk.SeparatorMenuItem()
-
-        self.switch_nv_pm_item = gtk.MenuItem()
-        self.switch_nv_pm_item.connect("activate", self.switch_nv_power)
-        self.separator2_nv_pm_item = gtk.SeparatorMenuItem()
-
-        self.pm_control_item = gtk.CheckMenuItem(
+        self.toggle_power_management_enable = gtk.CheckMenuItem(
             "Enable NVIDIA GPU Power Management")
-        self.pm_control_item.connect("toggled", self.toggle_pm)
-        self.pm_control_item.set_active(self.pm_enabled)
-        self.pm_control_item.show()
-        self.separator3_nv_pm_item = gtk.SeparatorMenuItem()
-        self.separator3_nv_pm_item.show()
+        self.toggle_power_management_enable.connect("toggled", self.toggle_pm)
+        self.toggle_power_management_enable.set_active(self.pm_enabled)
+
+        self.info_power_management = gtk.MenuItem()
+        self.info_power_management.set_sensitive(False)
+
+        self.switch_power_management = gtk.MenuItem()
+        self.switch_power_management.connect("activate", self.switch_nv_power)
+
+        self.separator_section_nvidia_settings = gtk.SeparatorMenuItem()
+        self.button_nvidia_settings = gtk.MenuItem("Open NVIDIA Settings")
+        self.button_nvidia_settings.connect("activate", self.open_settings)
 
         self.set_nv_pm_labels()
-        if self.pm_enabled and self.is_intel():
-            self.info_nv_pm_item.show()
-            self.switch_nv_pm_item.show()
-            self.separator_nv_pm_item.show()
-            self.separator2_nv_pm_item.show()
-        self.settings_item = gtk.MenuItem("Open NVIDIA Settings")
-        self.settings_item.connect("activate", self.open_settings)
-        self.settings_item.show()
 
-        self.menu.append(self.info_item)
-        self.menu.append(self.separator_item)
-        self.menu.append(self.switch_item)
-        self.menu.append(self.separator2_item)
-        self.menu.append(self.info_nv_pm_item)
-        self.menu.append(self.separator_nv_pm_item)
-        self.menu.append(self.switch_nv_pm_item)
-        self.menu.append(self.separator2_nv_pm_item)
-        self.menu.append(self.pm_control_item)
-        self.menu.append(self.separator3_nv_pm_item)
-        self.menu.append(self.settings_item)
+        self.info_in_use.show()
+        if self.is_intel() or self.is_nvidia():
+            self.switch_in_use.show()
+            self.separator_section_in_use.show()
+            self.toggle_power_management_enable.show()
+            if self.pm_enabled and self.is_intel():
+                self.info_power_management.show()
+                self.switch_power_management.show()
+
+        self.separator_section_nvidia_settings.show()
+        self.button_nvidia_settings.show()
+
+        self.menu.append(self.info_in_use)
+        self.menu.append(self.switch_in_use)
+        self.menu.append(self.separator_section_in_use)
+        self.menu.append(self.toggle_power_management_enable)
+        self.menu.append(self.info_power_management)
+        self.menu.append(self.switch_power_management)
+        self.menu.append(self.separator_section_nvidia_settings)
+        self.menu.append(self.button_nvidia_settings)
 
     def is_intel(self):
         return self.query_result == "intel"
@@ -130,32 +126,37 @@ class PRIMEIndicator:
             self.logout()
 
     def toggle_pm(self, dude):
-        self.pm_enabled = self.pm_control_item.get_active()
+        self.pm_enabled = self.toggle_power_management_enable.get_active()
         self.config.set(
             "PowerManagement", "enabled", str(self.pm_enabled))
         with open(CONFIG_PATH, "wb") as configfile:
             self.config.write(configfile)
         if self.pm_enabled and self.is_intel():
-            self.info_nv_pm_item.show()
-            self.switch_nv_pm_item.show()
+            self.info_power_management.show()
+            self.switch_power_management.show()
             self.separator_nv_pm_item.show()
-            self.separator2_nv_pm_item.show()
+            self.separator_section_nvidia_settings.show()
         else:
-            self.info_nv_pm_item.hide()
-            self.switch_nv_pm_item.hide()
+            self.info_power_management.hide()
+            self.switch_power_management.hide()
             self.separator_nv_pm_item.hide()
-            self.separator2_nv_pm_item.hide()
+            self.separator_section_nvidia_settings.hide()
 
     def open_settings(self, dude):
         os.system("/usr/bin/nvidia-settings")
 
     def show_reboot_dialog(self):
-        message = "You will be logged out now."
+        msg_nvidia = "dedicated NVIDIA GPU"
+        msg_intel = "integrated Intel GPU"
+        message = "You need to log out to switch from the " + \
+            msg_intel if self.is_intel() else msg_nvidia + \
+            " to the " + msg_nvidia if self.is_intel() else msg_intel + \
+            ". Save your work before clicking the Log Out button below."
         dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
                                    gtk.BUTTONS_NONE, message)
         dialog.set_deletable(False)
         dialog.connect("delete_event", self.ignore)
-        dialog.add_button(gtk.STOCK_OK, gtk.RESPONSE_OK)
+        dialog.add_button("Log Out", gtk.RESPONSE_OK)
         dialog.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
         response = dialog.run()
         dialog.destroy()
@@ -181,7 +182,7 @@ class PRIMEIndicator:
 
     def is_nvidia_on(self):
         out = commands.getoutput("cat /proc/acpi/bbswitch")
-        return out.endswith("ON")
+        return out.lower().endswith("on")
 
     def switch_gpu(self):
         if self.is_intel():
@@ -206,8 +207,8 @@ class PRIMEIndicator:
         self.set_nv_pm_labels()
 
     def set_nv_pm_labels(self):
-        self.info_nv_pm_item.set_label(self.nv_power_string())
-        self.switch_nv_pm_item.set_label(self.nv_power_switch_string())
+        self.info_power_management.set_label(self.nv_power_string())
+        self.switch_power_management.set_label(self.nv_power_switch_string())
 
     def logout(self):
         env = os.environ.get("XDG_CURRENT_DESKTOP")
@@ -215,11 +216,23 @@ class PRIMEIndicator:
             env = os.environ.get("DESKTOP_SESSION")
 
         env = env.lower()
-        if env == "xfce":
-            os.system("xfce4-session-logout -l")
-        elif env == "kde":
+        if env.startsWith("xfce"):
+            os.system("xfce4-session-logout --logout")
+        elif env.startsWith("kde"):
             os.system("qdbus org.kde.ksmserver /KSMServer logout 0 0 0")
+        elif env.startsWith("lxde"):
+            os.system("lxsession-logout --prompt \
+                'Please click the Log Out button to continue'")
+        elif env.startsWith("x-cinnamon"):
+            os.system("cinnamon-session-quit --logout --no-prompt")
+        elif env.startsWith("mate"):
+            os.system("mate-session-save --logout")
+        elif env.startsWith("budgie"):
+            os.system("budgie-session --logout")
+        elif env.startsWith("lxqt"):
+            os.system("lxqt-leave --logout")
         else:
+            # This works for other DE's like Unity, Gnome and Pantheon
             os.system("gnome-session-quit --logout --no-prompt")
 
     def main(self):
