@@ -1,6 +1,7 @@
 #!/bin/bash
 # PRIME Indicator - indicator applet for NVIDIA Optimus laptops
 # Copyright (C) 2013 Alfred Neumayer
+# Copyright (C) 2016 André Brait
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -22,26 +23,29 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 mkdir -p /usr/lib/primeindicator
-cp prime-indicator /usr/bin/
-chown root:root /usr/bin/prime-indicator
-chmod 755 /usr/bin/prime-indicator
+cp primeindicator.py /usr/bin/
+chown root:root /usr/bin/primeindicator.py
+chmod 755 /usr/bin/primeindicator.py
 cp gpuswitcher /usr/lib/primeindicator/
 cp *.svg /usr/lib/primeindicator/
 chmod a+r /usr/lib/primeindicator/*.svg
 chown root:root /usr/lib/primeindicator/gpuswitcher
 chmod a+x /usr/lib/primeindicator/gpuswitcher
-cp prime-indicator-sudoers /etc/sudoers.d/
-chmod 644 /etc/sudoers.d/prime-indicator-sudoers
+cp primeindicator-sudoers /etc/sudoers.d/
+chmod 644 /etc/sudoers.d/primeindicator-sudoers
+mkdir $HOME/.config/primeindicator
+cp primeindicator.cfg $HOME/.config/primeindicator/
+chown -R $SUDO_USER:$SUDO_USER $HOME/.config/primeindicator
 
 read -n1 -p "Autostart PRIME Indicator? (y/N) "
 if [[ $REPLY == [yY] ]]; then
     mkdir -p $HOME/.config/autostart
-    cp prime-indicator.desktop $HOME/.config/autostart
+    cp primeindicator.desktop $HOME/.config/autostart
     chown $SUDO_USER:$SUDO_USER $HOME/.config/autostart
-    chown $SUDO_USER:$SUDO_USER $HOME/.config/autostart/prime-indicator.desktop
-    chmod +x $HOME/.config/autostart/prime-indicator.desktop
+    chown $SUDO_USER:$SUDO_USER $HOME/.config/autostart/primeindicator.desktop
+    chmod +x $HOME/.config/autostart/primeindicator.desktop
 else
-    rm -f $HOME/.config/autostart/prime-indicator.desktop
+    rm -f $HOME/.config/autostart/primeindicator.desktop
 fi
 
 echo "Setup complete."

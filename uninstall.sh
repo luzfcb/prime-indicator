@@ -17,21 +17,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-if [[ $1 == "intel" ]]
-then
-    prime-select intel
-    sync
-else
-    if [[ -z $2 ]]
-    then
-        prime-select nvidia
-        sync
-    elif [[ $2 == "on" ]]
-    then
-        modprobe nvidia_drm nvidia_modeset nvidia_uvm nvidia
-        tee /proc/acpi/bbswitch <<< ON
-    else
-        rmmod nvidia_drm nvidia_modeset nvidia_uvm nvidia
-        tee /proc/acpi/bbswitch <<< OFF
-    fi
+if [[ $EUID -ne 0 ]]; then
+    echo "This script must be run as root." 2>&1
+    exit 1
 fi
+
+rm -f /usr/bin/primeindicator.py
+rm -f /etc/sudoers.d/primeindicator-sudoers
+rm -f $HOME/.config/autostart/primeindicator.desktop
+rm -rf /usr/lib/primeindicator
+rm -rf $HOME/.config/primeindicator
+
+echo "Uninstall complete."
+exit 0

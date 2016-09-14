@@ -3,7 +3,7 @@ PRIME Indicator
 Indicator applet for Ubuntu 14.04 and higher laptop users with NVIDIA/Intel hybrid GPUs,
 allowing quick switch between the GPUs in matter of seconds.
 It has been tested on Ubuntu 16.04 only, but should be working just as well
-on any Ubuntu distribution, more recent than 12.04, including Xubuntu, Kubuntu and Lubuntu flavours.
+on any Ubuntu distribution more recent than 12.04, including Xubuntu, Kubuntu and Lubuntu flavours.
 Ubuntu 12.04 users should also have no problems, as long if installing with the newest hardware enablement stack.
 
 This version features full power saving by completely disabling the NVIDIA GPU when it's not being used. 
@@ -20,27 +20,27 @@ Make sure you have installed and enabled:
 * NVIDIA driver, version 331.20 or higher
 * NVIDIA's additional package, `nvidia-prime`
 * `mesa-utils` package
-* `python-appindicator` package
+* `python3` package
+* `python3-gi` package
 * `bbswitch-dkms` package
 
-Or simply run the following, which will install all dependencies and the latest NVIDIA driver for your GPU.
+Or simply run the following, which will install all dependencies and the latest NVIDIA driver for your GPU (if it's supported by NVIDIA's latest drivers).
 ```
-sudo apt-get install nvidia-prime nvidia-settings python-appindicator mesa-utils bbswitch-dkms
+sudo apt-get install python3 python3-gi mesa-utils nvidia-prime nvidia-settings bbswitch-dkms
 sudo apt-get install $(sudo ubuntu-drivers devices | grep -o nvidia-[[:digit:]]*)
 ```
-
 
 Troubleshooting
 ===============
 
 ### `appindicator` module missing
-Install the `python-appindicator` package.
+Install the `python3-gi` package.
 
 ### Couldn't find RGB GLX visual or fbconfig
 Install the `mesa-utils` package.
 
-### `prime-indicator` only shows NVIDIA's logo
-If you're using `UEFI`, try disabling `Secure Boot` as NVIDIA's proprietary driver does NOT work with `Secure Boot` enabled.
+### PRIME Indicator only shows a question mark icon
+If you're using `UEFI`, try disabling `Secure Boot` as NVIDIA's proprietary driver does NOT work with `Secure Boot` enabled and it might result in neither GPU being recognized.
 
 
 Installation
