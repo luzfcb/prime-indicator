@@ -20,8 +20,9 @@ Make sure you have installed and enabled:
 * NVIDIA driver, version 331.20 or higher
 * NVIDIA's additional package, `nvidia-prime`
 * `mesa-utils` package
-* `python3` package
-* `python3-gi` package
+* `python` package
+* `python-appindicator` package
+* `python-configparser` package
 * `bbswitch-dkms` package
 
 Or simply run the following, which will install all dependencies and the latest NVIDIA driver for your GPU (if it's supported by NVIDIA's latest drivers).
@@ -34,7 +35,10 @@ Troubleshooting
 ===============
 
 ### `appindicator` module missing
-Install the `python3-gi` package.
+Install the `python-appindicator` package.
+
+### `configparser` module missing
+Install the `python-configparser` package.
 
 ### Couldn't find RGB GLX visual or fbconfig
 Install the `mesa-utils` package.
