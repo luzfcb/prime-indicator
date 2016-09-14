@@ -210,9 +210,15 @@ class PRIMEIndicator:
         self.switch_nv_pm_item.set_label(self.nv_power_switch_string())
 
     def logout(self):
-        env = os.environ.get("DESKTOP_SESSION")
-        if env == "xubuntu" or env == "xfce4":
+        env = os.environ.get("XDG_CURRENT_DESKTOP")
+        if env is None:
+            env = os.environ.get("DESKTOP_SESSION")
+
+        env = env.lower()
+        if env == "xfce":
             os.system("xfce4-session-logout -l")
+        elif env == "kde":
+            os.system("qdbus org.kde.ksmserver /KSMServer logout 0 0 0")
         else:
             os.system("gnome-session-quit --logout --no-prompt")
 
