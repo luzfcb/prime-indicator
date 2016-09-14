@@ -77,8 +77,8 @@ class PRIMEIndicator:
 
         self.toggle_power_management_enable = gtk.CheckMenuItem(
             "Enable NVIDIA GPU Power Management")
-        self.toggle_power_management_enable.connect("toggled", self.toggle_pm)
         self.toggle_power_management_enable.set_active(self.pm_enabled)
+        self.toggle_power_management_enable.connect("toggled", self.toggle_pm)
 
         self.info_power_management = gtk.MenuItem()
         self.info_power_management.set_sensitive(False)
@@ -96,10 +96,11 @@ class PRIMEIndicator:
         if self.is_intel() or self.is_nvidia():
             self.switch_in_use.show()
             self.separator_section_in_use.show()
-            self.toggle_power_management_enable.show()
-            if self.pm_enabled and self.is_intel():
-                self.info_power_management.show()
-                self.switch_power_management.show()
+            if(self.is_intel()):
+                self.toggle_power_management_enable.show()
+                if self.pm_enabled:
+                    self.info_power_management.show()
+                    self.switch_power_management.show()
 
         self.separator_section_nvidia_settings.show()
         self.button_nvidia_settings.show()
@@ -134,13 +135,9 @@ class PRIMEIndicator:
         if self.pm_enabled and self.is_intel():
             self.info_power_management.show()
             self.switch_power_management.show()
-            self.separator_nv_pm_item.show()
-            self.separator_section_nvidia_settings.show()
         else:
             self.info_power_management.hide()
             self.switch_power_management.hide()
-            self.separator_nv_pm_item.hide()
-            self.separator_section_nvidia_settings.hide()
 
     def open_settings(self, dude):
         os.system("/usr/bin/nvidia-settings")
@@ -149,8 +146,8 @@ class PRIMEIndicator:
         msg_nvidia = "dedicated NVIDIA GPU"
         msg_intel = "integrated Intel GPU"
         message = "You need to log out to switch from the " + \
-            msg_intel if self.is_intel() else msg_nvidia + \
-            " to the " + msg_nvidia if self.is_intel() else msg_intel + \
+            (msg_intel if self.is_intel() else msg_nvidia) + \
+            " to the " + (msg_nvidia if self.is_intel() else msg_intel) + \
             ". Save your work before clicking the Log Out button below."
         dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
                                    gtk.BUTTONS_NONE, message)
@@ -216,20 +213,20 @@ class PRIMEIndicator:
             env = os.environ.get("DESKTOP_SESSION")
 
         env = env.lower()
-        if env.startsWith("xfce"):
+        if env.startswith("xfce"):
             os.system("xfce4-session-logout --logout")
-        elif env.startsWith("kde"):
+        elif env.startswith("kde"):
             os.system("qdbus org.kde.ksmserver /KSMServer logout 0 0 0")
-        elif env.startsWith("lxde"):
+        elif env.startswith("lxde"):
             os.system("lxsession-logout --prompt \
                 'Please click the Log Out button to continue'")
-        elif env.startsWith("x-cinnamon"):
+        elif env.startswith("x-cinnamon"):
             os.system("cinnamon-session-quit --logout --no-prompt")
-        elif env.startsWith("mate"):
+        elif env.startswith("mate"):
             os.system("mate-session-save --logout")
-        elif env.startsWith("budgie"):
+        elif env.startswith("budgie"):
             os.system("budgie-session --logout")
-        elif env.startsWith("lxqt"):
+        elif env.startswith("lxqt"):
             os.system("lxqt-leave --logout")
         else:
             # This works for other DE's like Unity, Gnome and Pantheon
