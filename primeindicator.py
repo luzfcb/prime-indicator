@@ -184,9 +184,9 @@ class PRIMEIndicator:
         return out.endswith("ON")
 
     def switch_gpu(self):
-        if self.is_integrated:
+        if self.is_intel():
             os.system(SCRIPT_CMD + " nvidia")
-        else:
+        elif self.is_nvidia():
             os.system(SCRIPT_CMD + " intel")
 
     def switch_nv_power(self, dude):
