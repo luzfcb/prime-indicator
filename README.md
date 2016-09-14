@@ -27,7 +27,7 @@ Make sure you have installed and enabled:
 
 Or simply run the following, which will install all dependencies and the latest NVIDIA driver for your GPU (if it's supported by NVIDIA's latest drivers).
 ```
-sudo apt-get install python3 python3-gi mesa-utils nvidia-prime nvidia-settings bbswitch-dkms
+sudo apt-get install python-appindicator python-configparser mesa-utils nvidia-prime nvidia-settings bbswitch-dkms
 sudo apt-get install $(sudo ubuntu-drivers devices | grep -o nvidia-[[:digit:]]*)
 ```
 
