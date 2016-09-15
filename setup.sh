@@ -23,24 +23,24 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 mkdir -p /usr/lib/primeindicator
-cp primeindicator.py /usr/bin/
+cp src/primeindicator.py /usr/bin/
 chown root:root /usr/bin/primeindicator.py
 chmod 755 /usr/bin/primeindicator.py
-cp gpuswitcher /usr/lib/primeindicator/
-cp *.svg /usr/lib/primeindicator/
+cp src/gpuswitcher /usr/lib/primeindicator/
+cp resource/*.svg /usr/lib/primeindicator/
 chmod a+r /usr/lib/primeindicator/*.svg
 chown root:root /usr/lib/primeindicator/gpuswitcher
 chmod a+x /usr/lib/primeindicator/gpuswitcher
-cp primeindicator-sudoers /etc/sudoers.d/
+cp src/primeindicator-sudoers /etc/sudoers.d/
 chmod 644 /etc/sudoers.d/primeindicator-sudoers
 mkdir -p $HOME/.config/primeindicator
-cp primeindicator.cfg $HOME/.config/primeindicator/
+cp src/primeindicator.cfg $HOME/.config/primeindicator/
 chown -R $SUDO_USER:$SUDO_USER $HOME/.config/primeindicator
 
 read -n1 -p "Autostart PRIME Indicator? (y/N) "
 if [[ $REPLY == [yY] ]]; then
     mkdir -p $HOME/.config/autostart
-    cp primeindicator.desktop $HOME/.config/autostart
+    cp src/primeindicator.desktop $HOME/.config/autostart
     chown $SUDO_USER:$SUDO_USER $HOME/.config/autostart
     chown $SUDO_USER:$SUDO_USER $HOME/.config/autostart/primeindicator.desktop
     chmod +x $HOME/.config/autostart/primeindicator.desktop
