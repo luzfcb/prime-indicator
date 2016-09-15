@@ -33,7 +33,7 @@ chown root:root /usr/lib/primeindicator/gpuswitcher
 chmod a+x /usr/lib/primeindicator/gpuswitcher
 cp primeindicator-sudoers /etc/sudoers.d/
 chmod 644 /etc/sudoers.d/primeindicator-sudoers
-mkdir $HOME/.config/primeindicator
+mkdir -p $HOME/.config/primeindicator
 cp primeindicator.cfg $HOME/.config/primeindicator/
 chown -R $SUDO_USER:$SUDO_USER $HOME/.config/primeindicator
 
@@ -48,5 +48,5 @@ else
     rm -f $HOME/.config/autostart/primeindicator.desktop
 fi
 
-echo "Setup complete."
+echo -e "\nSetup complete."
 exit 0
