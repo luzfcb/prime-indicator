@@ -216,6 +216,7 @@ class PRIMEIndicator:
             os.system("xfce4-session-logout --logout")
         elif env.startswith("kde"):
             os.system("qdbus org.kde.ksmserver /KSMServer logout 0 0 0")
+            exit(0)
         elif env.startswith("lxde"):
             os.system("lxsession-logout --prompt " +
                       "'Please click the Log Out button to continue'")

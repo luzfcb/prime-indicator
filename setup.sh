@@ -37,16 +37,22 @@ mkdir -p $HOME/.config/primeindicator
 cp src/primeindicator.cfg $HOME/.config/primeindicator/
 chown -R $SUDO_USER:$SUDO_USER $HOME/.config/primeindicator
 
-read -n1 -p "Autostart PRIME Indicator? (y/N) "
-if [[ $REPLY == [yY] ]]; then
-    mkdir -p $HOME/.config/autostart
-    cp src/primeindicator.desktop $HOME/.config/autostart
-    chown $SUDO_USER:$SUDO_USER $HOME/.config/autostart
-    chown $SUDO_USER:$SUDO_USER $HOME/.config/autostart/primeindicator.desktop
-    chmod +x $HOME/.config/autostart/primeindicator.desktop
-else
-    rm -f $HOME/.config/autostart/primeindicator.desktop
-fi
+echo "Autostart PRIME Indicator?"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes ) 	mkdir -p $HOME/.config/autostart
+        		cp src/primeindicator.desktop $HOME/.config/autostart
+        		chown $SUDO_USER:$SUDO_USER $HOME/.config/autostart
+    			chown $SUDO_USER:$SUDO_USER $HOME/.config/autostart/primeindicator.desktop
+    			chmod +x $HOME/.config/autostart/primeindicator.desktop
+    			break;;
+        No ) 	rm -f $HOME/.config/autostart/primeindicator.desktop
+        		break;;
+    esac
+done
+
+echo -e "\nTo start PRIME Indicator now, use the command\n"
+echo -e "\t/usr/bin/primeindicator.py & disown"
 
 echo -e "\nSetup complete."
 exit 0
