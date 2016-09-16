@@ -140,7 +140,7 @@ class PRIMEIndicator:
             self.switch_power_management.hide()
 
     def open_settings(self, dude):
-        os.system("/usr/bin/nvidia-settings")
+        os.system("/usr/bin/nvidia-settings &>/dev/null")
 
     def show_reboot_dialog(self):
         msg_nvidia = "dedicated NVIDIA GPU"
