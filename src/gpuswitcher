@@ -19,19 +19,19 @@
 
 if [[ $1 == "intel" ]]
 then
-    prime-select intel
+    prime-select intel 2&>/dev/null
     sync
 else
     if [[ -z $2 ]]
     then
-        prime-select nvidia
+        prime-select nvidia 2&>/dev/null
         sync
     elif [[ $2 == "on" ]]
     then
-        modprobe nvidia_drm nvidia_modeset nvidia_uvm nvidia
-        tee /proc/acpi/bbswitch <<< ON
+        modprobe nvidia_drm nvidia_modeset nvidia_uvm nvidia 2&>/dev/null
+        tee /proc/acpi/bbswitch <<< ON 2&>/dev/null
     else
-        rmmod nvidia_drm nvidia_modeset nvidia_uvm nvidia
-        tee /proc/acpi/bbswitch <<< OFF
+        rmmod nvidia_drm nvidia_modeset nvidia_uvm nvidia 2&>/dev/null
+        tee /proc/acpi/bbswitch <<< OFF 2&>/dev/null
     fi
 fi

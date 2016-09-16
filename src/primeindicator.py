@@ -160,7 +160,6 @@ class PRIMEIndicator:
         return response
 
     def ignore(self, *args):
-
         return gtk.TRUE
 
     def renderer_string(self):
@@ -218,8 +217,8 @@ class PRIMEIndicator:
         elif env.startswith("kde"):
             os.system("qdbus org.kde.ksmserver /KSMServer logout 0 0 0")
         elif env.startswith("lxde"):
-            os.system("lxsession-logout --prompt \
-                'Please click the Log Out button to continue'")
+            os.system("lxsession-logout --prompt " +
+                      "'Please click the Log Out button to continue'")
         elif env.startswith("x-cinnamon"):
             os.system("cinnamon-session-quit --logout --no-prompt")
         elif env.startswith("mate"):
@@ -227,14 +226,31 @@ class PRIMEIndicator:
         elif env.startswith("budgie"):
             os.system("budgie-session --logout")
         elif env.startswith("lxqt"):
-            os.system("lxqt-leave --logout")
-        else:
-            # This works for other DE's like Unity, Gnome and Pantheon
+            os.system("lxqt-leave --logout ")
+        elif env.startswith("gnome") or env.startswith("pantheon") \
+                or env.startswith("unity"):
             os.system("gnome-session-quit --logout --no-prompt")
+        else:
+            message = "It seems you're running an unsupported Desktop " + \
+                "Environment. Please manually log out and then log in " + \
+                "again to complete the switch."
+            dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL,
+                                       gtk.MESSAGE_ERROR,
+                                       gtk.BUTTONS_OK,
+                                       message)
+            dialog.set_deletable(False)
+            dialog.connect("delete_event", self.ignore)
+            dialog.run()
+            dialog.destroy()
 
     def main(self):
         gtk.main()
 
 if __name__ == "__main__":
+
+    supports_prime = commands.getoutput("prime-supported 2>/dev/null")
+    if supports_prime != "yes":
+        exit(0)
+
     indicator = PRIMEIndicator()
     indicator.main()
