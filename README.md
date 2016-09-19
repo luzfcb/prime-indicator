@@ -12,8 +12,10 @@ This version features full power saving by completely disabling the NVIDIA GPU w
 NVIDIA PRIME won't do it by default, leaving NVIDIA GPU powered on even when it's using the Intel GPU only.
 While this saves some power (because the NVIDIA GPU is idle), it still consumes about 4~5W more than with it 
 completely off. Since this is not ideal, this version is extended to use bbswitch to power the NVIDIA GPU off. 
-Still, should the need for it to be on arrive, this version provides an option to force it to stay powered on
+Still, should the need for it to be on arrise, this version provides an option to force it to stay powered on
 when using integrated graphics only, so it can be used for GPGPU and other tasks other than rendering.
+
+In Ubuntu-based distros, the power management is implemented using the gpumanager service. If you're running an Ubuntu-based distro, it's likely you won't see much battery-life related benefits when running this version. However, if for any reason gpumanager is not working for you, this version is worth trying as it's able to overcome some sittuations where gpumanager might fail to turn the dGPU off (such as when using the latest NVIDIA drivers from the Proprietary Graphics Drivers PPA, https://bugs.launchpad.net/ubuntu/+source/ubuntu-drivers-common/+bug/1619306).
 
 There's currently support for the following Desktop Environments:
 
