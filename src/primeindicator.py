@@ -23,6 +23,7 @@
 import appindicator
 import commands
 import configparser
+import errno
 import gtk
 import os
 
@@ -46,6 +47,17 @@ class PRIMEIndicator:
         self.indicator.set_status(appindicator.STATUS_ACTIVE)
 
         self.config = configparser.SafeConfigParser()
+
+        if not os.path.exists(os.path.dirname(CONFIG_PATH)):
+            try:
+                os.makedirs(os.path.dirname(CONFIG_PATH))
+                self.config.set(
+                    "PowerManagement", "enabled", str(self.pm_enabled))
+                with open(CONFIG_PATH, "wb") as configfile:
+                    self.config.write(configfile)
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
         self.config.read(CONFIG_PATH)
         self.pm_enabled = self.config.get(
             "PowerManagement", "enabled").strip().lower() == "true"
@@ -216,7 +228,6 @@ class PRIMEIndicator:
             os.system("xfce4-session-logout --logout")
         elif env.startswith("kde"):
             os.system("qdbus org.kde.ksmserver /KSMServer logout 0 0 0")
-            exit(0)
         elif env.startswith("lxde"):
             os.system("lxsession-logout --prompt " +
                       "'Please click the Log Out button to continue'")
