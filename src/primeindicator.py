@@ -52,7 +52,7 @@ class PRIMEIndicator:
             try:
                 os.makedirs(os.path.dirname(CONFIG_PATH))
                 self.config.set(
-                    "PowerManagement", "enabled", str(self.pm_enabled))
+                    "PowerManagement", "enabled", "true")
                 with open(CONFIG_PATH, "wb") as configfile:
                     self.config.write(configfile)
             except OSError as exc:  # Guard against race condition

@@ -33,9 +33,6 @@ chown root:root /usr/lib/primeindicator/gpuswitcher
 chmod a+x /usr/lib/primeindicator/gpuswitcher
 cp src/primeindicator-sudoers /etc/sudoers.d/
 chmod 644 /etc/sudoers.d/primeindicator-sudoers
-mkdir -p $HOME/.config/primeindicator
-cp src/primeindicator.cfg $HOME/.config/primeindicator/
-chown -R $SUDO_USER:$SUDO_USER $HOME/.config/primeindicator
 
 echo "Autostart PRIME Indicator?"
 select yn in "Yes" "No"; do
