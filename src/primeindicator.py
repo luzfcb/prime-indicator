@@ -190,7 +190,6 @@ if __name__ == "__main__":
 
     Gtk.main()
 
-
 # Fim do Mint
 
 #
@@ -389,10 +388,20 @@ class Tray:
             self.icon.set_from_icon_name("dialog-error")
             self.icon.set_tooltip_text("Active graphics card: " + active_gpu)
 
-    def on_activate(self, icon, data=None) -> None:
+    @staticmethod
+    def terminate(window=None, data=None) -> None:
+        Gtk.main_quit()
+
+    @staticmethod
+    def run_nvidia_settings(arg=None) -> None:
+        subprocess.Popen(["nvidia-settings", "-page", "PRIME Profiles"])
+
+    @staticmethod
+    def on_activate(icon, data=None) -> None:
         run_nvidia_settings()
 
-    def on_popup_menu(self, icon, button, time, data=None) -> None:
+    @staticmethod
+    def on_popup_menu(icon, button, time, data=None) -> None:
         menu = Gtk.Menu()
 
         def position_menu_cb(m, x, y=None, i=None):
@@ -435,25 +444,29 @@ class Indicator:
 
         menu = Gtk.Menu()
         item = Gtk.MenuItem(label="NVIDIA Settings")
-        item.connect("activate", run_nvidia_settings)
+        item.connect("activate", Indicator.run_nvidia_settings)
         menu.append(item)
         menu.append(Gtk.SeparatorMenuItem())
         item = Gtk.MenuItem(label="Quit")
-        item.connect("activate", terminate)
+        item.connect("activate", Indicator.terminate)
         menu.append(item)
         menu.show_all()
         self.icon.set_menu(menu)
 
+    @staticmethod
+    def terminate(window=None, data=None) -> None:
+        Gtk.main_quit()
 
-def terminate(window=None, data=None) -> None:
-    Gtk.main_quit()
+    @staticmethod
+    def run_nvidia_settings(arg=None) -> None:
+        subprocess.Popen(["nvidia-settings", "-page", "PRIME Profiles"])
 
 
-def run_nvidia_settings(arg=None) -> None:
-    subprocess.Popen(["nvidia-settings", "-page", "PRIME Profiles"])
+def ignore(*args):
+    return Gtk.TRUE
 
 
-def logout(self):
+def logout():
     env = os.environ.get("XDG_CURRENT_DESKTOP").lower()
 
     if env.startswith("xfce"):
@@ -480,7 +493,7 @@ def logout(self):
                   "again to complete the switch."
         dialog = Gtk.MessageDialog(None, Gtk.DIALOG_MODAL, Gtk.MESSAGE_ERROR, Gtk.BUTTONS_OK, message)
         dialog.set_deletable(False)
-        dialog.connect("delete_event", self.ignore)
+        dialog.connect("delete_event", ignore)
         dialog.run()
         dialog.destroy()
 
@@ -690,8 +703,7 @@ if __name__ == "__main__":
 #     return response
 #
 #
-# def ignore(self, *args):
-#     return gtk.TRUE
+
 #
 #
 # def renderer_string(self):
