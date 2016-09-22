@@ -131,8 +131,8 @@ def run_nvidia_settings(arg=None) -> None:
     subprocess.Popen(["nvidia-settings", "-page", "PRIME Profiles"])
 
 
-def logout(self):
-    env = os.environ.get("XDG_CURRENT_DESKTOP").lower()
+def logout() -> None:
+    env = os.getenv("XDG_CURRENT_DESKTOP", "UNSUPPORTED").lower()
 
     if env.startswith("xfce"):
         os.system("xfce4-session-logout --logout")
@@ -158,9 +158,7 @@ def logout(self):
                   "again to complete the switch."
         dialog = Gtk.MessageDialog(None, Gtk.DIALOG_MODAL, Gtk.MESSAGE_ERROR, Gtk.BUTTONS_OK, message)
         dialog.set_deletable(False)
-        dialog.connect("delete_event", self.ignore)
         dialog.run()
-        dialog.destroy()
 
 
 if __name__ == "__main__":
@@ -171,17 +169,6 @@ if __name__ == "__main__":
 
     if subprocess.getoutput("prime-supported 2>/dev/null") != "yes":
         sys.exit(0)
-
-    if not os.path.exists(CONFIG_PATH):
-        os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-        config.add_section("PowerManagement")
-        config.add_section("Appearance")
-        config.set("PowerManagement", "enabled", "true")
-        config.set("Appearance", "iconset", "symbolic")
-        with open(CONFIG_PATH, "wb") as configfile:
-            config.write(configfile)
-    else:
-        config.read(CONFIG_PATH)
 
     if os.getenv("XDG_CURRENT_DESKTOP") == "KDE":
         Indicator()
@@ -359,34 +346,41 @@ SCRIPT_CMD = "sudo " + LIB_PATH + "gpuswitcher"
 CONFIG_PATH = HOME_DIR + "/.config/primeindicator/primeindicator.cfg"
 PRIME_SELECT_PATH = "/usr/bin/prime-select"
 NVIDIA_SETTINGS_PATH = "/usr/bin/nvidia-settings"
-config = configparser.ConfigParser()
 
 
-class Tray:
+class PRIMEIndicator:
     def __init__(self):
 
-        self.icon = Gtk.StatusIcon()
-        self.icon.set_title("nvidia-prime")
-        self.icon.connect("popup-menu", self.on_popup_menu)
-        self.icon.connect("activate", self.on_activate)
+        self.config = configparser.ConfigParser()
+        if not os.path.exists(CONFIG_PATH):
+            os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+            config.add_section("PowerManagement")
+            config.add_section("Appearance")
+            config.set("PowerManagement", "enabled", "true")
+            config.set("Appearance", "iconset", "symbolic")
+            with open(CONFIG_PATH, "wb") as configfile:
+                config.write(configfile)
+        else:
+            config.read(CONFIG_PATH)
 
         active_gpu = subprocess.getoutput("prime-select query")
+
         if active_gpu == "nvidia":
             if config.get("Appearance", "iconset") == "symbolic":
-                self.icon.set_from_icon_name("prime-tray-nvidia-symbolic")
+                self.icon_name = "prime-tray-nvidia-symbolic"
             else:
-                self.icon.set_from_icon_name("prime-tray-nvidia")
-            self.icon.set_tooltip_text("Active graphics card: NVIDIA")
+                self.icon_name = "prime-tray-nvidia"
+            self.icon_tooltip_text = "Active graphics card: NVIDIA"
 
         elif active_gpu == "intel":
             if config.get("Appearance", "iconset") == "symbolic":
-                self.icon.set_from_icon_name("prime-tray-intel-symbolic")
+                self.icon_name = "prime-tray-intel-symbolic"
             else:
-                self.icon.set_from_icon_name("prime-tray-intel")
-            self.icon.set_tooltip_text("Active graphics card: Intel")
+                self.icon_name = "prime-tray-intel"
+            self.icon_tooltip_text = "Active graphics card: Intel"
         else:
-            self.icon.set_from_icon_name("dialog-error")
-            self.icon.set_tooltip_text("Active graphics card: " + active_gpu)
+            self.icon_name = "dialog-error"
+            self.icon_tooltip_text = "Active graphics card: " + active_gpu
 
     @staticmethod
     def terminate(window=None, data=None) -> None:
@@ -395,6 +389,20 @@ class Tray:
     @staticmethod
     def run_nvidia_settings(arg=None) -> None:
         subprocess.Popen(["nvidia-settings", "-page", "PRIME Profiles"])
+
+
+class Tray(PRIMEIndicator):
+    def __init__(self):
+
+        super().__init__()
+
+        self.icon = Gtk.StatusIcon()
+        self.icon.set_title("nvidia-prime")
+        self.icon.connect("popup-menu", self.on_popup_menu)
+        self.icon.connect("activate", self.on_activate)
+
+        self.icon.set_from_icon_name(self.icon_name)
+        self.icon.set_tooltip_text(self.icon_tooltip_text)
 
     @staticmethod
     def on_activate(icon, data=None) -> None:
@@ -411,13 +419,13 @@ class Tray:
                 return Gtk.StatusIcon.position_menu(menu, icon)
 
         item = Gtk.MenuItem(label="NVIDIA Settings")
-        item.connect("activate", run_nvidia_settings)
+        item.connect("activate", PRIMEIndicator.run_nvidia_settings)
         menu.append(item)
 
         menu.append(Gtk.SeparatorMenuItem())
 
         item = Gtk.MenuItem(label="Quit")
-        item.connect("activate", terminate)
+        item.connect("activate", PRIMEIndicator.terminate)
         menu.append(item)
 
         menu.show_all()
@@ -426,44 +434,28 @@ class Tray:
         menu.popup_for_device(device, None, None, position_menu_cb, icon, button, time)
 
 
-class Indicator:
+class Indicator(PRIMEIndicator):
     def __init__(self):
+
+        super().__init__()
+
         self.icon = AppIndicator3.Indicator.new('nvidia-prime', '', AppIndicator3.IndicatorCategory.APPLICATION_STATUS)
         self.icon.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
 
-        active_gpu = subprocess.getoutput("prime-select query")
-        if active_gpu == "nvidia":
-            self.icon.set_icon("prime-tray-nvidia")
-            self.icon.set_title("Active graphics card: NVIDIA")
-        elif active_gpu == "intel":
-            self.icon.set_icon("prime-tray-intel")
-            self.icon.set_title("Active graphics card: Intel")
-        else:
-            self.icon.set_icon("dialog-error")
-            self.icon.set_title("Active graphics card: " + active_gpu)
+        self.icon.set_icon(self.icon_name)
+        self.icon.set_title(self.icon_tooltip_text)
 
         menu = Gtk.Menu()
         item = Gtk.MenuItem(label="NVIDIA Settings")
-        item.connect("activate", Indicator.run_nvidia_settings)
+        item.connect("activate", PRIMEIndicator.run_nvidia_settings)
         menu.append(item)
         menu.append(Gtk.SeparatorMenuItem())
         item = Gtk.MenuItem(label="Quit")
-        item.connect("activate", Indicator.terminate)
+        item.connect("activate", PRIMEIndicator.terminate)
         menu.append(item)
         menu.show_all()
         self.icon.set_menu(menu)
 
-    @staticmethod
-    def terminate(window=None, data=None) -> None:
-        Gtk.main_quit()
-
-    @staticmethod
-    def run_nvidia_settings(arg=None) -> None:
-        subprocess.Popen(["nvidia-settings", "-page", "PRIME Profiles"])
-
-
-def ignore(*args):
-    return Gtk.TRUE
 
 
 def logout():
@@ -474,8 +466,7 @@ def logout():
     elif env.startswith("kde"):
         os.system("qdbus org.kde.ksmserver /KSMServer logout 0 0 0")
     elif env.startswith("lxde"):
-        os.system("lxsession-logout --prompt " +
-                  "'Please click the Log Out button to continue'")
+        os.system("lxsession-logout --prompt 'Please click the Log Out button to continue'")
     elif env.startswith("x-cinnamon"):
         os.system("cinnamon-session-quit --logout --no-prompt")
     elif env.startswith("mate"):
@@ -484,18 +475,14 @@ def logout():
         os.system("budgie-session --logout")
     elif env.startswith("lxqt"):
         os.system("lxqt-leave --logout ")
-    elif env.startswith("gnome") or env.startswith("pantheon") \
-            or env.startswith("unity"):
+    elif env.startswith("gnome") or env.startswith("pantheon") or env.startswith("unity"):
         os.system("gnome-session-quit --logout --no-prompt")
     else:
-        message = "It seems you're running an unsupported Desktop " + \
-                  "Environment. Please manually log out and then log in " + \
-                  "again to complete the switch."
+        message = "It seems you're running an unsupported Desktop Environment. " + \
+                  "Please manually log out and then log in again to complete the switch."
         dialog = Gtk.MessageDialog(None, Gtk.DIALOG_MODAL, Gtk.MESSAGE_ERROR, Gtk.BUTTONS_OK, message)
         dialog.set_deletable(False)
-        dialog.connect("delete_event", ignore)
         dialog.run()
-        dialog.destroy()
 
 
 if __name__ == "__main__":
@@ -506,17 +493,6 @@ if __name__ == "__main__":
 
     if subprocess.getoutput("prime-supported 2>/dev/null") != "yes":
         sys.exit(0)
-
-    if not os.path.exists(CONFIG_PATH):
-        os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-        config.add_section("PowerManagement")
-        config.add_section("Appearance")
-        config.set("PowerManagement", "enabled", "true")
-        config.set("Appearance", "iconset", "symbolic")
-        with open(CONFIG_PATH, "wb") as configfile:
-            config.write(configfile)
-    else:
-        config.read(CONFIG_PATH)
 
     if os.getenv("XDG_CURRENT_DESKTOP") == "KDE":
         Indicator()
