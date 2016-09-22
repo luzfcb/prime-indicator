@@ -1,0 +1,313 @@
+#!/usr/bin/python3
+
+# -*- coding: utf-8 -*-
+#
+# This file is part of PRIME Indicator - indicator applet for NVIDIA Optimus laptops.
+# Copyright (C) 2016 André Brait Carneiro Fabotti
+#
+# This work is based on the works of Alfred Neumayer and Clement Lefebvre.
+#
+# PRIME Indicator is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PRIME Indicator is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PRIME Indicator.  If not, see <http://www.gnu.org/licenses/>.
+
+import sys
+import os
+import subprocess
+import configparser
+import gi.repository
+
+gi.require_version('Gtk', '3.0')
+gi.require_version('AppIndicator3', '0.1')
+from gi.repository import Gtk
+from gi.repository import AppIndicator3
+
+APP_NAME = "PRIME Indicator"
+HOME_DIR = os.getenv("HOME")
+LIB_PATH = "/usr/lib/prime-indicator"
+SCRIPT_CMD = "sudo " + LIB_PATH + "/gpuswitcher"
+CONFIG_PATH = HOME_DIR + "/.config/prime-indicator/prime-indicator.cfg"
+TEMP_ICON_PATH = HOME_DIR + "/.config/prime-indicator"
+PRIME_SELECT_PATH = "/usr/bin/prime-select"
+NVIDIA_SETTINGS_PATH = "/usr/bin/nvidia-settings"
+
+
+class Indicator:
+    def __init__(self):
+
+        self.config = configparser.ConfigParser()
+        self.check_config_integrity()
+
+        self.pm_enabled = self.config.get(
+            "PowerManagement", "enabled").strip().lower() == "true"
+
+        self.icon_path = LIB_PATH + "/icons"
+        self.active_gpu = subprocess.getoutput("prime-select query")
+        self.theme_icons = self.config.get("Appearance", "iconset")
+
+        if self.active_gpu == "nvidia":
+            if self.theme_icons == "color":
+                self.icon_name = "prime-indicator-symbolic"
+            elif self.theme_icons == "symbolic":
+                self.create_themed_icons()
+                self.icon_name = "prime-indicator-nvidia-symbolic-themed"
+            else:
+                self.icon_name = "nvidia"
+            self.icon_tooltip_text = "Active graphics card: NVIDIA"
+
+        elif self.active_gpu == "intel":
+            if self.theme_icons == "color":
+                self.icon_name = "prime-indicator-intel"
+            elif self.theme_icons == "symbolic":
+                self.create_themed_icons()
+                self.icon_name = "prime-indicator-intel-symbolic-themed"
+            else:
+                self.icon_name = "intel"
+            self.icon_tooltip_text = "Active graphics card: Intel"
+        else:
+            self.icon_name = "dialog-error"
+            self.icon_tooltip_text = "Active graphics card: " + self.active_gpu
+
+        self.menu = Gtk.Menu()
+        item = Gtk.MenuItem(self.renderer_string())
+        item.set_sensitive(False)
+        item.show()
+        self.menu.append(item)
+
+        switch_in_use = Gtk.MenuItem("Quick switch graphics ...")
+        switch_in_use.connect("activate", self.switch)
+        self.menu.append(switch_in_use)
+
+        separator_in_use = Gtk.SeparatorMenuItem()
+        self.menu.append(separator_in_use)
+
+        self.toggle_power_management_enable = Gtk.CheckMenuItem("Enable NVIDIA GPU Power Management")
+        self.toggle_power_management_enable.set_active(self.pm_enabled)
+        self.toggle_power_management_enable.connect("toggled", self.toggle_pm)
+        self.menu.append(self.toggle_power_management_enable)
+
+        self.info_power_management = Gtk.MenuItem()
+        self.info_power_management.set_sensitive(False)
+        self.menu.append(self.info_power_management)
+
+        self.switch_power_management = Gtk.MenuItem()
+        self.switch_power_management.connect("activate", self.switch_nv_power)
+        self.menu.append(self.switch_power_management)
+
+        self.set_nv_pm_labels()
+        if self.active_gpu == "intel" or self.active_gpu == "nvidia":
+            switch_in_use.show()
+            separator_in_use.show()
+            if self.active_gpu == "intel":
+                self.toggle_power_management_enable.show()
+                if self.pm_enabled:
+                    self.info_power_management.show()
+                    self.switch_power_management.show()
+
+        item = Gtk.SeparatorMenuItem()
+        item.show()
+        self.menu.append(item)
+
+        item = Gtk.MenuItem("Open NVIDIA Settings")
+        item.connect("activate", self.run_nvidia_settings)
+        item.show()
+        self.menu.append(item)
+
+        item = Gtk.SeparatorMenuItem()
+        item.show()
+        self.menu.append(item)
+
+        item = Gtk.MenuItem("Quit")
+        item.connect("activate", self.terminate)
+        item.show()
+        self.menu.append(item)
+
+        self.icon = AppIndicator3.Indicator.new_with_path(APP_NAME, "",
+                                                          AppIndicator3.IndicatorCategory.APPLICATION_STATUS,
+                                                          self.icon_path)
+        self.icon.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
+        self.icon.set_icon(self.icon_name)
+        self.icon.set_title(self.icon_tooltip_text)
+        self.icon.set_menu(self.menu)
+
+    def create_themed_icons(self):
+        window = Gtk.Window()
+        style_context = window.get_style_context()
+        style_fg_color = style_context.lookup_color('fg_color')
+        if style_fg_color[0]:
+            fg_color_str = "#{r:02x}{g:02x}{b:02x}".format(r=int(style_fg_color[1].red * 255),
+                                                           g=int(style_fg_color[1].green * 255),
+                                                           b=int(style_fg_color[1].blue * 255))
+        else:
+            fg_color_str = "#bebebe"
+
+        os.makedirs(TEMP_ICON_PATH, exist_ok=True)
+        with open(LIB_PATH + "/icons/prime-indicator-nvidia-symbolic.svg", "r") as fin:
+            with open(TEMP_ICON_PATH + "/prime-indicator-nvidia-symbolic-themed.svg", "w") as fout:
+                for line in fin:
+                    fout.write(line.replace("#bebebe", fg_color_str))
+        with open(LIB_PATH + "/icons/prime-indicator-intel-symbolic.svg", "r") as fin:
+            with open(TEMP_ICON_PATH + "/prime-indicator-intel-symbolic-themed.svg", "w") as fout:
+                for line in fin:
+                    fout.write(line.replace("#bebebe", fg_color_str))
+
+        self.icon_path = TEMP_ICON_PATH
+
+    def write_default_config(self):
+        os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+        self.config.clear()
+        self.config.add_section("PowerManagement")
+        self.config.add_section("Appearance")
+        self.config.set("PowerManagement", "enabled", "true")
+        self.config.set("Appearance", "iconset", "theme-default")
+        with open(CONFIG_PATH, "w") as configfile:
+            self.config.write(configfile)
+
+    def check_config_integrity(self):
+        if not os.path.exists(CONFIG_PATH) or not os.path.isfile(CONFIG_PATH):
+            self.write_default_config()
+        else:
+            try:
+                self.config.read(CONFIG_PATH)
+                if not self.config.get("Appearance", "iconset") in ["symbolic", "color", "theme-default"] or \
+                        not self.config.get("PowerManagement", "enabled") in ["true", "false"]:
+                    self.write_default_config()
+            except (configparser.NoSectionError, configparser.NoOptionError):
+                self.write_default_config()
+
+    def toggle_pm(self, dude):
+        self.pm_enabled = self.toggle_power_management_enable.get_active()
+        self.config.set(
+            "PowerManagement", "enabled", str(self.pm_enabled))
+        with open(CONFIG_PATH, "w") as configfile:
+            self.config.write(configfile)
+        if self.pm_enabled and self.active_gpu == "intel":
+            self.info_power_management.show()
+            self.switch_power_management.show()
+        else:
+            self.info_power_management.hide()
+            self.switch_power_management.hide()
+
+    def terminate(self, window=None, data=None) -> None:
+        Gtk.main_quit()
+
+    def run_nvidia_settings(self, arg=None) -> None:
+        subprocess.Popen(["nvidia-settings", "-page", "PRIME Profiles"])
+
+    def execute(self):
+        Gtk.main()
+
+    def logout(self):
+        env = os.environ.get("XDG_CURRENT_DESKTOP", "UNSUPPORTED").lower()
+
+        if env.startswith("xfce"):
+            os.system("xfce4-session-logout --logout")
+        elif env.startswith("kde"):
+            os.system("qdbus org.kde.ksmserver /KSMServer logout 0 0 0")
+        elif env.startswith("lxde"):
+            os.system("lxsession-logout --prompt 'Please click the Log Out button to continue'")
+        elif env.startswith("x-cinnamon"):
+            os.system("cinnamon-session-quit --logout --no-prompt")
+        elif env.startswith("mate"):
+            os.system("mate-session-save --logout")
+        elif env.startswith("budgie"):
+            os.system("budgie-session --logout")
+        elif env.startswith("lxqt"):
+            os.system("lxqt-leave --logout ")
+        elif env.startswith("gnome") or env.startswith("pantheon") or env.startswith("unity"):
+            os.system("gnome-session-quit --logout --no-prompt")
+        else:
+            message = "It seems you're running an unsupported Desktop Environment. " + \
+                      "Please manually log out and then log in again to complete the switch."
+            dialog = Gtk.MessageDialog(None, Gtk.DIALOG_MODAL, Gtk.MESSAGE_ERROR, Gtk.BUTTONS_OK, message)
+            dialog.set_deletable(False)
+            dialog.run()
+
+    def renderer_string(self) -> str:
+        out = subprocess.getoutput(
+            "glxinfo | grep 'OpenGL renderer string'")
+        out = out.replace("OpenGL renderer string", "Using")
+        return out
+
+    def nv_power_string(self) -> str:
+        return "NVIDIA GPU is powered " + \
+               ("ON" if self.is_nvidia_on() else "OFF")
+
+    def nv_power_switch_string(self) -> str:
+        return "Force NVIDIA GPU to power " + \
+               ("OFF" if self.is_nvidia_on() else "ON")
+
+    def is_nvidia_on(self) -> bool:
+        out = subprocess.getoutput("cat /proc/acpi/bbswitch")
+        return out.lower().endswith("on")
+
+    def switch_gpu(self) -> None:
+        if self.active_gpu == "intel":
+            os.system(SCRIPT_CMD + " nvidia")
+        elif self.active_gpu == "nvidia":
+            os.system(SCRIPT_CMD + " intel")
+
+    def switch_nv_power(self, dude) -> None:
+        if self.is_nvidia_on():
+            self.turn_nv_off()
+        else:
+            self.turn_nv_on()
+
+    def turn_nv_on(self) -> None:
+        os.system(SCRIPT_CMD + " nvidia on")
+        self.set_nv_pm_labels()
+
+    def turn_nv_off(self) -> None:
+        os.system(SCRIPT_CMD + " nvidia off")
+        self.set_nv_pm_labels()
+
+    def set_nv_pm_labels(self) -> None:
+        self.info_power_management.set_label(self.nv_power_string())
+        self.switch_power_management.set_label(self.nv_power_switch_string())
+
+    def ignore(self, *args):
+        return Gtk.ResponseType.CANCEL
+
+    def show_reboot_dialog(self):
+        msg_nvidia = "dedicated NVIDIA GPU"
+        msg_intel = "integrated Intel GPU"
+        message = "You need to log out to switch from the " + \
+                  (msg_intel if (self.active_gpu == "intel") else msg_nvidia) + \
+                  " to the " + (msg_nvidia if (self.active_gpu == "intel") else msg_intel) + \
+                  ". Save your work before clicking the Log Out button below."
+        dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.MODAL, Gtk.MessageType.INFO,
+                                   Gtk.ButtonsType.NONE, message)
+        dialog.set_deletable(False)
+        dialog.connect("delete_event", self.ignore)
+        dialog.add_button("Log Out", Gtk.ResponseType.OK)
+        dialog.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+        response = dialog.run()
+        dialog.destroy()
+        return response
+
+    def switch(self, dude) -> None:
+        response = self.show_reboot_dialog()
+        if response != Gtk.ResponseType.CANCEL:
+            self.switch_gpu()
+            self.logout()
+
+if __name__ == "__main__":
+
+    # If nvidia-prime isn't installed or isn't supported, exit cleanly
+    if not os.path.exists(NVIDIA_SETTINGS_PATH) or not os.path.exists(PRIME_SELECT_PATH):
+        sys.exit(0)
+
+    if subprocess.getoutput("prime-supported 2>/dev/null") != "yes":
+        sys.exit(0)
+
+    indicator = Indicator()
+    indicator.execute()

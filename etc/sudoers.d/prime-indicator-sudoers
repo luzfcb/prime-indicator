@@ -1,4 +1,3 @@
-#!/bin/bash
 # This file is part of PRIME Indicator - indicator applet for NVIDIA Optimus laptops.
 # Copyright (C) 2016 André Brait Carneiro Fabotti
 #
@@ -17,19 +16,4 @@
 # You should have received a copy of the GNU General Public License
 # along with PRIME Indicator.  If not, see <http://www.gnu.org/licenses/>.
 
-if [[ $EUID -ne 0 ]]; then
-    echo "This script must be run as root." 2>&1
-    exit 1
-fi
-
-LIB_DIR="/usr/lib/prime-indicator"
-SUDOERS_FILE="/etc/sudoers.d/prime-indicator-sudoers"
-AUTOSTART_FILE="/etc/xdg/autostart/prime-indicator.desktop"
-
-rm -f ${SUDOERS_FILE}
-rm -f ${AUTOSTART_FILE}
-rm -rf ${LIB_DIR}
-rm -rf $HOME/.config/prime-indicator
-
-echo "Uninstall complete."
-exit 0
+%sudo ALL=NOPASSWD: /usr/lib/prime-indicator/gpuswitcher
