@@ -47,42 +47,86 @@ class Indicator:
         self.config = configparser.ConfigParser()
         self.check_config_integrity()
 
+        self.pm_enabled = self.config.get(
+            "PowerManagement", "enabled").strip().lower() == "true"
+
         self.icon_path = LIB_PATH + "/icons"
         self.active_gpu = subprocess.getoutput("prime-select query")
         self.theme_icons = self.config.get("Appearance", "iconset")
 
         if self.active_gpu == "nvidia":
-            if self.theme_icons == "theme-default":
-                self.icon_name = "nvidia"
+            if self.theme_icons == "color":
+                self.icon_name = "prime-indicator-symbolic"
             elif self.theme_icons == "symbolic":
                 self.create_themed_icons()
                 self.icon_name = "prime-indicator-nvidia-symbolic-themed"
             else:
-                self.icon_name = "prime-indicator-nvidia"
+                self.icon_name = "nvidia"
             self.icon_tooltip_text = "Active graphics card: NVIDIA"
 
         elif self.active_gpu == "intel":
-            if self.theme_icons == "theme-default":
-                self.icon_name = "intel"
+            if self.theme_icons == "color":
+                self.icon_name = "prime-indicator-intel"
             elif self.theme_icons == "symbolic":
                 self.create_themed_icons()
                 self.icon_name = "prime-indicator-intel-symbolic-themed"
             else:
-                self.icon_name = "prime-indicator-intel"
+                self.icon_name = "intel"
             self.icon_tooltip_text = "Active graphics card: Intel"
         else:
             self.icon_name = "dialog-error"
             self.icon_tooltip_text = "Active graphics card: " + self.active_gpu
 
         self.menu = Gtk.Menu()
-        item = Gtk.MenuItem(label="NVIDIA Settings")
-        item.connect("activate", self.run_nvidia_settings)
+        item = Gtk.MenuItem(self.renderer_string())
+        item.set_sensitive(False)
         item.show()
         self.menu.append(item)
+
+        switch_in_use = Gtk.MenuItem("Quick switch graphics ...")
+        switch_in_use.connect("activate", self.switch)
+        self.menu.append(switch_in_use)
+
+        separator_in_use = Gtk.SeparatorMenuItem()
+        self.menu.append(separator_in_use)
+
+        self.toggle_power_management_enable = Gtk.CheckMenuItem("Enable NVIDIA GPU Power Management")
+        self.toggle_power_management_enable.set_active(self.pm_enabled)
+        self.toggle_power_management_enable.connect("toggled", self.toggle_pm)
+        self.menu.append(self.toggle_power_management_enable)
+
+        self.info_power_management = Gtk.MenuItem()
+        self.info_power_management.set_sensitive(False)
+        self.menu.append(self.info_power_management)
+
+        self.switch_power_management = Gtk.MenuItem()
+        self.switch_power_management.connect("activate", self.switch_nv_power)
+        self.menu.append(self.switch_power_management)
+
+        self.set_nv_pm_labels()
+        if self.active_gpu == "intel" or self.active_gpu == "nvidia":
+            switch_in_use.show()
+            separator_in_use.show()
+            if self.active_gpu == "intel":
+                self.toggle_power_management_enable.show()
+                if self.pm_enabled:
+                    self.info_power_management.show()
+                    self.switch_power_management.show()
+
         item = Gtk.SeparatorMenuItem()
         item.show()
         self.menu.append(item)
-        item = Gtk.MenuItem(label="Quit")
+
+        item = Gtk.MenuItem("Open NVIDIA Settings")
+        item.connect("activate", self.run_nvidia_settings)
+        item.show()
+        self.menu.append(item)
+
+        item = Gtk.SeparatorMenuItem()
+        item.show()
+        self.menu.append(item)
+
+        item = Gtk.MenuItem("Quit")
         item.connect("activate", self.terminate)
         item.show()
         self.menu.append(item)
@@ -91,7 +135,6 @@ class Indicator:
                                                           AppIndicator3.IndicatorCategory.APPLICATION_STATUS,
                                                           self.icon_path)
         self.icon.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
-
         self.icon.set_icon(self.icon_name)
         self.icon.set_title(self.icon_tooltip_text)
         self.icon.set_menu(self.menu)
@@ -101,22 +144,21 @@ class Indicator:
         style_context = window.get_style_context()
         style_fg_color = style_context.lookup_color('fg_color')
         if style_fg_color[0]:
-            fg_color_str = "#{0:02x}{1:02x}{2:02x}{3:02x}".format(int(style_fg_color[1].red * 255),
-                                                                  int(style_fg_color[1].green * 255),
-                                                                  int(style_fg_color[1].blue * 255),
-                                                                  int(style_fg_color[1].alpha * 255))
+            fg_color_str = "#{r:02x}{g:02x}{b:02x}".format(r=int(style_fg_color[1].red * 255),
+                                                           g=int(style_fg_color[1].green * 255),
+                                                           b=int(style_fg_color[1].blue * 255))
         else:
-            fg_color_str = "#bebebeff"
+            fg_color_str = "#bebebe"
 
         os.makedirs(TEMP_ICON_PATH, exist_ok=True)
         with open(LIB_PATH + "/icons/prime-indicator-nvidia-symbolic.svg", "r") as fin:
             with open(TEMP_ICON_PATH + "/prime-indicator-nvidia-symbolic-themed.svg", "w") as fout:
                 for line in fin:
-                    fout.write(line.replace("#bebeff", fg_color_str))
+                    fout.write(line.replace("#bebebe", fg_color_str))
         with open(LIB_PATH + "/icons/prime-indicator-intel-symbolic.svg", "r") as fin:
             with open(TEMP_ICON_PATH + "/prime-indicator-intel-symbolic-themed.svg", "w") as fout:
                 for line in fin:
-                    fout.write(line.replace("#bebeff", fg_color_str))
+                    fout.write(line.replace("#bebebe", fg_color_str))
 
         self.icon_path = TEMP_ICON_PATH
 
@@ -126,7 +168,7 @@ class Indicator:
         self.config.add_section("PowerManagement")
         self.config.add_section("Appearance")
         self.config.set("PowerManagement", "enabled", "true")
-        self.config.set("Appearance", "iconset", "symbolic")
+        self.config.set("Appearance", "iconset", "theme-default")
         with open(CONFIG_PATH, "w") as configfile:
             self.config.write(configfile)
 
@@ -141,6 +183,19 @@ class Indicator:
                     self.write_default_config()
             except (configparser.NoSectionError, configparser.NoOptionError):
                 self.write_default_config()
+
+    def toggle_pm(self, dude):
+        self.pm_enabled = self.toggle_power_management_enable.get_active()
+        self.config.set(
+            "PowerManagement", "enabled", str(self.pm_enabled))
+        with open(CONFIG_PATH, "w") as configfile:
+            self.config.write(configfile)
+        if self.pm_enabled and self.active_gpu == "intel":
+            self.info_power_management.show()
+            self.switch_power_management.show()
+        else:
+            self.info_power_management.hide()
+            self.switch_power_management.hide()
 
     def terminate(self, window=None, data=None) -> None:
         Gtk.main_quit()
@@ -176,6 +231,73 @@ class Indicator:
             dialog = Gtk.MessageDialog(None, Gtk.DIALOG_MODAL, Gtk.MESSAGE_ERROR, Gtk.BUTTONS_OK, message)
             dialog.set_deletable(False)
             dialog.run()
+
+    def renderer_string(self) -> str:
+        out = subprocess.getoutput(
+            "glxinfo | grep 'OpenGL renderer string'")
+        out = out.replace("OpenGL renderer string", "Using")
+        return out
+
+    def nv_power_string(self) -> str:
+        return "NVIDIA GPU is powered " + \
+               ("ON" if self.is_nvidia_on() else "OFF")
+
+    def nv_power_switch_string(self) -> str:
+        return "Force NVIDIA GPU to power " + \
+               ("OFF" if self.is_nvidia_on() else "ON")
+
+    def is_nvidia_on(self) -> bool:
+        out = subprocess.getoutput("cat /proc/acpi/bbswitch")
+        return out.lower().endswith("on")
+
+    def switch_gpu(self) -> None:
+        if self.active_gpu == "intel":
+            os.system(SCRIPT_CMD + " nvidia")
+        elif self.active_gpu == "nvidia":
+            os.system(SCRIPT_CMD + " intel")
+
+    def switch_nv_power(self, dude) -> None:
+        if self.is_nvidia_on():
+            self.turn_nv_off()
+        else:
+            self.turn_nv_on()
+
+    def turn_nv_on(self) -> None:
+        os.system(SCRIPT_CMD + " nvidia on")
+        self.set_nv_pm_labels()
+
+    def turn_nv_off(self) -> None:
+        os.system(SCRIPT_CMD + " nvidia off")
+        self.set_nv_pm_labels()
+
+    def set_nv_pm_labels(self) -> None:
+        self.info_power_management.set_label(self.nv_power_string())
+        self.switch_power_management.set_label(self.nv_power_switch_string())
+
+    def ignore(self, *args):
+        return Gtk.ResponseType.CANCEL
+
+    def show_reboot_dialog(self):
+        msg_nvidia = "dedicated NVIDIA GPU"
+        msg_intel = "integrated Intel GPU"
+        message = "You need to log out to switch from the " + \
+                  (msg_intel if (self.active_gpu == "intel") else msg_nvidia) + \
+                  " to the " + (msg_nvidia if (self.active_gpu == "intel") else msg_intel) + \
+                  ". Save your work before clicking the Log Out button below."
+        dialog = Gtk.MessageDialog.new(None, Gtk.DialogFlags.MODAL, Gtk.MessageType.INFO,
+                                       Gtk.ButtonsType.NONE, message)
+        dialog.set_deletable(False)
+        dialog.connect("delete_event", self.ignore)
+        dialog.add_button("Log Out", Gtk.ResponseType.OK)
+        dialog.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+        response = dialog.run()
+        dialog.destroy()
+        return response
+
+    def switch(self, dude) -> None:
+        response = self.show_reboot_dialog()
+        if response != Gtk.ResponseType.CANCEL:
+            self.switch_gpu()
 
 
 if __name__ == "__main__":
@@ -371,57 +493,6 @@ if __name__ == "__main__":
 
 #
 #
-# def renderer_string(self):
-#     out = commands.getoutput(
-#         "glxinfo | grep 'OpenGL renderer string'")
-#     out = out.replace("OpenGL renderer string", "Using")
-#     return out
-#
-#
-# def nv_power_string(self):
-#     return "NVIDIA GPU is powered " + \
-#            ("ON" if self.nv_power else "OFF")
-#
-#
-# def nv_power_switch_string(self):
-#     return "Force NVIDIA GPU to power " + \
-#            ("OFF" if self.nv_power else "ON")
-#
-#
-# def is_nvidia_on(self):
-#     out = commands.getoutput("cat /proc/acpi/bbswitch")
-#     return out.lower().endswith("on")
-#
-#
-# def switch_gpu(self):
-#     if self.is_intel():
-#         os.system(SCRIPT_CMD + " nvidia")
-#     elif self.is_nvidia():
-#         os.system(SCRIPT_CMD + " intel")
-#
-#
-# def switch_nv_power(self, dude):
-#     if self.nv_power:
-#         self.turn_nv_off()
-#     else:
-#         self.turn_nv_on()
-#
-#
-# def turn_nv_on(self):
-#     os.system(SCRIPT_CMD + " nvidia on")
-#     self.nv_power = self.is_nvidia_on()
-#     self.set_nv_pm_labels()
-#
-#
-# def turn_nv_off(self):
-#     os.system(SCRIPT_CMD + " nvidia off")
-#     self.nv_power = self.is_nvidia_on()
-#     self.set_nv_pm_labels()
-#
-#
-# def set_nv_pm_labels(self):
-#     self.info_power_management.set_label(self.nv_power_string())
-#     self.switch_power_management.set_label(self.nv_power_switch_string())
 #
 #
 #
