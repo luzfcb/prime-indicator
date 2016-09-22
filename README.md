@@ -36,14 +36,13 @@ Make sure you have installed and enabled:
 * NVIDIA driver, version 331.20 or higher
 * NVIDIA's additional package, `nvidia-prime`
 * `mesa-utils` package
-* `python` package
-* `python-appindicator` package
-* `python-configparser` package
+* `python3` package
+* `gir1.2-appindicator3` package
 * `bbswitch-dkms` package
 
 Or simply run the following, which will install all dependencies and the latest NVIDIA driver for your GPU (if it's supported by NVIDIA's latest drivers).
 ```
-sudo apt-get install python-appindicator python-configparser mesa-utils nvidia-prime nvidia-settings bbswitch-dkms
+sudo apt-get install python3 mesa-utils nvidia-prime nvidia-settings bbswitch-dkms gir1.2-appindicator3
 sudo apt-get install $(sudo ubuntu-drivers devices | grep -o nvidia-[[:digit:]]*)
 ```
 
