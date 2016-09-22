@@ -1,4 +1,5 @@
-##!/usr/bin/env python3
+#!/usr/bin/env python3
+
 # -*- coding: utf-8 -*-
 #
 # This file is part of PRIME Indicator - indicator applet for NVIDIA Optimus laptops.
@@ -44,16 +45,7 @@ class PRIMEIndicator:
     def __init__(self):
 
         self.config = configparser.ConfigParser()
-        if not os.path.exists(CONFIG_PATH):
-            os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-            self.config.add_section("PowerManagement")
-            self.config.add_section("Appearance")
-            self.config.set("PowerManagement", "enabled", "true")
-            self.config.set("Appearance", "iconset", "symbolic")
-            with open(CONFIG_PATH, "wb") as configfile:
-                self.config.write(configfile)
-        else:
-            self.config.read(CONFIG_PATH)
+        self.check_config_integrity()
 
         active_gpu = subprocess.getoutput("prime-select query")
 
@@ -74,21 +66,45 @@ class PRIMEIndicator:
             self.icon_name = "dialog-error"
             self.icon_tooltip_text = "Active graphics card: " + active_gpu
 
-        menu = Gtk.Menu()
+        self.menu = Gtk.Menu()
         item = Gtk.MenuItem(label="NVIDIA Settings")
         item.connect("activate", self.run_nvidia_settings)
-        menu.append(item)
-        menu.append(Gtk.SeparatorMenuItem())
+        self.menu.append(item)
+        self.menu.append(Gtk.SeparatorMenuItem())
         item = Gtk.MenuItem(label="Quit")
         item.connect("activate", self.terminate)
-        menu.append(item)
+        self.menu.append(item)
 
-        self.menu = menu
 
-    def terminate(window=None, data=None) -> None:
+    def write_default_config(self):
+        os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+        self.config.clear()
+        self.config.add_section("PowerManagement")
+        self.config.add_section("Appearance")
+        self.config.set("PowerManagement", "enabled", "true")
+        self.config.set("Appearance", "iconset", "symbolic")
+        with open(CONFIG_PATH, "w") as configfile:
+            self.config.write(configfile)
+
+
+    def check_config_integrity(self):
+        if not os.path.exists(CONFIG_PATH) or not os.path.isfile(CONFIG_PATH):
+            self.write_default_config()
+        else:
+            try:
+                self.config.read(CONFIG_PATH)
+                if not self.config.get("Appearance", "iconset") in ["symbolic", "color"] or \
+                        not self.config.get("PowerManagement", "enabled") in ["true", "false"]:
+                    self.write_default_config()
+            except (configparser.NoSectionError, configparser.NoOptionError):
+                self.write_default_config()
+
+
+    def terminate(self, window=None, data=None) -> None:
         Gtk.main_quit()
 
-    def run_nvidia_settings(arg=None) -> None:
+
+    def run_nvidia_settings(self, arg=None) -> None:
         subprocess.Popen(["nvidia-settings", "-page", "PRIME Profiles"])
 
 
@@ -105,8 +121,8 @@ class Tray(PRIMEIndicator):
         self.icon.set_from_icon_name(self.icon_name)
         self.icon.set_tooltip_text(self.icon_tooltip_text)
 
-    def on_activate(icon, data=None) -> None:
-        PRIMEIndicator.run_nvidia_settings()
+    def on_activate(self, icon, data=None) -> None:
+        self.run_nvidia_settings()
 
     def on_popup_menu(self, icon, button, time, data=None) -> None:
 
@@ -133,7 +149,7 @@ class Indicator(PRIMEIndicator):
 
 
 def logout():
-    env = os.environ.get("XDG_CURRENT_DESKTOP").lower()
+    env = os.environ.get("XDG_CURRENT_DESKTOP", "UNSUPPORTED").lower()
 
     if env.startswith("xfce"):
         os.system("xfce4-session-logout --logout")
@@ -168,7 +184,7 @@ if __name__ == "__main__":
     if subprocess.getoutput("prime-supported 2>/dev/null") != "yes":
         sys.exit(0)
 
-    if os.getenv("XDG_CURRENT_DESKTOP") == "KDE":
+    if os.getenv("XDG_CURRENT_DESKTOP") == "KDE" or os.getenv("XDG_CURRENT_DESKTOP") == "Unity":
         Indicator()
     else:
         Tray()
