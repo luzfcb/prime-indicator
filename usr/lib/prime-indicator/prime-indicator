@@ -285,7 +285,7 @@ class Indicator:
                   " to the " + (msg_nvidia if (self.active_gpu == "intel") else msg_intel) + \
                   ". Save your work before clicking the Log Out button below."
         dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.MODAL, Gtk.MessageType.INFO,
-                                       Gtk.ButtonsType.NONE, message)
+                                   Gtk.ButtonsType.NONE, message)
         dialog.set_deletable(False)
         dialog.connect("delete_event", self.ignore)
         dialog.add_button("Log Out", Gtk.ResponseType.OK)
