@@ -382,6 +382,17 @@ class PRIMEIndicator:
             self.icon_name = "dialog-error"
             self.icon_tooltip_text = "Active graphics card: " + active_gpu
 
+        menu = Gtk.Menu()
+        item = Gtk.MenuItem(label="NVIDIA Settings")
+        item.connect("activate", PRIMEIndicator.run_nvidia_settings)
+        menu.append(item)
+        menu.append(Gtk.SeparatorMenuItem())
+        item = Gtk.MenuItem(label="Quit")
+        item.connect("activate", PRIMEIndicator.terminate)
+        menu.append(item)
+
+        self.menu = menu
+
     @staticmethod
     def terminate(window=None, data=None) -> None:
         Gtk.main_quit()
@@ -404,34 +415,19 @@ class Tray(PRIMEIndicator):
         self.icon.set_from_icon_name(self.icon_name)
         self.icon.set_tooltip_text(self.icon_tooltip_text)
 
-    @staticmethod
     def on_activate(icon, data=None) -> None:
         run_nvidia_settings()
 
-    @staticmethod
-    def on_popup_menu(icon, button, time, data=None) -> None:
-        menu = Gtk.Menu()
+    def on_popup_menu(self, icon, button, time, data=None) -> None:
 
         def position_menu_cb(m, x, y=None, i=None):
             try:
-                return Gtk.StatusIcon.position_menu(menu, x, y, icon)
+                return Gtk.StatusIcon.position_menu(self.menu, x, y, icon)
             except (AttributeError, TypeError):
-                return Gtk.StatusIcon.position_menu(menu, icon)
-
-        item = Gtk.MenuItem(label="NVIDIA Settings")
-        item.connect("activate", PRIMEIndicator.run_nvidia_settings)
-        menu.append(item)
-
-        menu.append(Gtk.SeparatorMenuItem())
-
-        item = Gtk.MenuItem(label="Quit")
-        item.connect("activate", PRIMEIndicator.terminate)
-        menu.append(item)
-
-        menu.show_all()
+                return Gtk.StatusIcon.position_menu(self.menu, icon)
 
         device = Gdk.Display.get_default().get_device_manager().get_client_pointer()
-        menu.popup_for_device(device, None, None, position_menu_cb, icon, button, time)
+        self.menu.popup_for_device(device, None, None, position_menu_cb, icon, button, time)
 
 
 class Indicator(PRIMEIndicator):
@@ -444,18 +440,7 @@ class Indicator(PRIMEIndicator):
 
         self.icon.set_icon(self.icon_name)
         self.icon.set_title(self.icon_tooltip_text)
-
-        menu = Gtk.Menu()
-        item = Gtk.MenuItem(label="NVIDIA Settings")
-        item.connect("activate", PRIMEIndicator.run_nvidia_settings)
-        menu.append(item)
-        menu.append(Gtk.SeparatorMenuItem())
-        item = Gtk.MenuItem(label="Quit")
-        item.connect("activate", PRIMEIndicator.terminate)
-        menu.append(item)
-        menu.show_all()
-        self.icon.set_menu(menu)
-
+        self.icon.set_menu(self.menu)
 
 
 def logout():
