@@ -298,7 +298,7 @@ class Indicator:
         response = self.show_reboot_dialog()
         if response != Gtk.ResponseType.CANCEL:
             self.switch_gpu()
-
+            self.logout()
 
 if __name__ == "__main__":
 
