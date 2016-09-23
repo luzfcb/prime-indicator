@@ -61,6 +61,12 @@ Install the `mesa-utils` package.
 ### PRIME Indicator only shows a question mark icon
 If you're using `UEFI`, try disabling `Secure Boot` as NVIDIA's proprietary driver does NOT work with `Secure Boot` enabled and it might result in neither GPU being recognized.
 
+### The icons look awful!
+I've added some icon options! Edit the config file which resides in `$HOME/.config/prime-indicator/prime-indicator.cfg` and change the option `iconset` in the `Appearance` section to one of the following options:
+* theme-default: uses icons provided by the icon theme you're using. Falls bacck to the color option if none is provided. (default)
+* symbolic: attempts to color the icons based on the GTK theme the system is using (depends on the theme's configuration)
+* color: full color icons (blue Intel logo and green NVIDIA logo)
+
 
 Installation
 ============
