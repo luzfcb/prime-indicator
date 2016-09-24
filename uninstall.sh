@@ -29,7 +29,7 @@ AUTOSTART_FILE="/etc/xdg/autostart/prime-indicator.desktop"
 rm -f ${SUDOERS_FILE}
 rm -f ${AUTOSTART_FILE}
 rm -rf ${LIB_DIR}
-rm -rf $HOME/.config/prime-indicator
+rm -rf ${HOME}/.config/prime-indicator
 
 echo "Uninstall complete."
 exit 0
