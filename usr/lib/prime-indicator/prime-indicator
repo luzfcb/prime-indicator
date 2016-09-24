@@ -25,6 +25,8 @@ import os
 import signal
 import subprocess
 import configparser
+from typing import List
+
 import gi.repository
 
 gi.require_version('Gtk', '3.0')
@@ -37,7 +39,7 @@ HOME_DIR = os.getenv("HOME")
 LIB_PATH = "/usr/lib/prime-indicator"
 SCRIPT_CMD = "sudo " + LIB_PATH + "/gpuswitcher"
 CONFIG_PATH = HOME_DIR + "/.config/prime-indicator/prime-indicator.cfg"
-TEMP_ICON_PATH = HOME_DIR + "/.config/prime-indicator"
+TEMP_ICON_PATH = HOME_DIR + "/.config/prime-indicator/icons-symbolic"
 PRIME_SELECT_PATH = "/usr/bin/prime-select"
 NVIDIA_SETTINGS_PATH = "/usr/bin/nvidia-settings"
 
@@ -49,11 +51,11 @@ class Indicator:
         self.check_config_integrity()
 
         self.pm_enabled = self.config.get(
-            "PowerManagement", "enabled").strip().lower() == "true"
+            "PowerManagement", "enabled").strip().lower() == "true"  # type:bool
 
         self.icon_path = LIB_PATH + "/icons"
-        self.active_gpu = subprocess.getoutput("prime-select query")
-        self.theme_icons = self.config.get("Appearance", "iconset")
+        self.active_gpu = subprocess.getoutput("prime-select query")  # type:str
+        self.theme_icons = self.config.get("Appearance", "iconset")  # type:str
 
         if self.active_gpu == "nvidia":
             if self.theme_icons == "color":
@@ -105,7 +107,7 @@ class Indicator:
         self.menu.append(self.switch_power_management)
 
         self.set_nv_pm_labels()
-        if self.active_gpu == "intel" or self.active_gpu == "nvidia":
+        if self.active_gpu in ["intel", "nvidia"]:
             switch_in_use.show()
             separator_in_use.show()
             if self.active_gpu == "intel":
@@ -141,9 +143,9 @@ class Indicator:
         self.icon.set_menu(self.menu)
 
     def create_themed_icons(self):
-        window = Gtk.Window()
+        window = Gtk.Window()  # type: Gtk.Window
         style_context = window.get_style_context()
-        style_fg_color = style_context.lookup_color('fg_color')
+        style_fg_color = style_context.lookup_color('fg_color')  # type: tuple
         if style_fg_color[0]:
             fg_color_str = "#{r:02x}{g:02x}{b:02x}".format(r=int(style_fg_color[1].red * 255),
                                                            g=int(style_fg_color[1].green * 255),
@@ -313,15 +315,17 @@ if __name__ == "__main__":
     if subprocess.getoutput("prime-supported 2>/dev/null") != "yes":
         sys.exit(0)
 
-    otherpid = str(subprocess.getoutput("pgrep -f prime-indicator"))
+    otherpid = str(subprocess.getoutput("pgrep -f prime-indicator"))  # type:str
     if otherpid:
-        pidlist = otherpid.splitlines(False)
+        pidlist = otherpid.splitlines()  # type:List[str]
         for pid in pidlist:
-            pid = int(pid)
-            if pid != os.getpid():
-                try:
-                    os.kill(pid, signal.SIGTERM)
-                except (ProcessLookupError):
-                    pass
+            if pid and pid.isnumeric():
+                pid = int(pid)  # type:int
+                if pid != os.getpid():
+                    try:
+                        os.kill(pid, signal.SIGTERM)
+                        os.kill(pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
     indicator = Indicator()
     indicator.execute()
