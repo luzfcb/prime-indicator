@@ -50,10 +50,7 @@ Troubleshooting
 ===============
 
 ### `appindicator` module missing
-Install the `python-appindicator` package.
-
-### `configparser` module missing
-Install the `python-configparser` package.
+Install the `gir1.2-appindicator3` package.
 
 ### Couldn't find RGB GLX visual or fbconfig
 Install the `mesa-utils` package.
