@@ -22,10 +22,15 @@
 
 import sys
 import os
+import re
 import signal
 import subprocess
 import configparser
-from typing import List
+
+# Uncomment the following import if you want to enable type hinting
+# and you're running Python >3.5, or you installed the typing package
+# using pip.
+# from typing import List 
 
 import gi.repository
 
@@ -55,6 +60,7 @@ class Indicator:
         self.icon_path = LIB_PATH + "/icons"
         self.active_gpu = subprocess.getoutput("prime-select query")  # type:str
         self.theme_icons = self.config.get("Appearance", "iconset")  # type:str
+        self.custom_color = None
 
         if self.active_gpu == "nvidia":
             if self.theme_icons == "color":
@@ -72,6 +78,9 @@ class Indicator:
             elif self.theme_icons == "symbolic":
                 self.create_themed_icons()
                 self.icon_name = "prime-indicator-intel-symbolic-themed"
+            elif self.theme_icons.startswith("custom"):
+                result = re.search('custom\((.*)\)', self.theme_icons)
+                self.custom_color = result.result.group(1)
             else:
                 self.icon_name = "intel"
             self.icon_tooltip_text = "Active graphics card: Intel"
@@ -143,14 +152,16 @@ class Indicator:
 
     def create_themed_icons(self):
         window = Gtk.Window()  # type:Gtk.Window
-        style_context = window.get_style_context()
-        style_fg_color = style_context.lookup_color('fg_color')  # type:tuple
-        if style_fg_color[0]:
-            fg_color_str = "#{r:02x}{g:02x}{b:02x}".format(r=int(style_fg_color[1].red * 255),
-                                                           g=int(style_fg_color[1].green * 255),
-                                                           b=int(style_fg_color[1].blue * 255))
+        fg_color_str = "#bebebe"
+        if self.custom_color:
+            fg_color_str = self.custom_color
         else:
-            fg_color_str = "#bebebe"
+            style_context = window.get_style_context()
+            style_fg_color = style_context.lookup_color('fg_color')  # type:tuple
+            if style_fg_color[0]:
+                fg_color_str = "#{r:02x}{g:02x}{b:02x}".format(r=int(style_fg_color[1].red * 255),
+                                                               g=int(style_fg_color[1].green * 255),
+                                                               b=int(style_fg_color[1].blue * 255))
 
         os.makedirs(TEMP_ICON_PATH, exist_ok=True)
         with open(LIB_PATH + "/icons/prime-indicator-nvidia-symbolic.svg", "r") as fin:
@@ -215,6 +226,7 @@ class Indicator:
 
         if env.startswith("xfce"):
             os.system("xfce4-session-logout --logout")
+            restart()
         elif env.startswith("kde"):
             os.system("qdbus org.kde.ksmserver /KSMServer logout 0 0 0")
         elif env.startswith("lxde"):
@@ -235,6 +247,7 @@ class Indicator:
             dialog = Gtk.MessageDialog(None, Gtk.DIALOG_MODAL, Gtk.MESSAGE_ERROR, Gtk.BUTTONS_OK, message)
             dialog.set_deletable(False)
             dialog.run()
+            restart()
 
     def renderer_string(self) -> str:
         out = subprocess.getoutput("glxinfo | grep 'OpenGL renderer string'")  # type:str
@@ -301,16 +314,8 @@ class Indicator:
             self.switch_gpu()
             self.logout()
 
-
-if __name__ == "__main__":
-
-    # If nvidia-prime isn't installed or isn't supported, exit cleanly
-    if not os.path.exists(NVIDIA_SETTINGS_PATH) or not os.path.exists(PRIME_SELECT_PATH):
-        sys.exit(0)
-
-    if subprocess.getoutput("prime-supported 2>/dev/null") != "yes":
-        sys.exit(0)
-
+            
+def kill_other_instances() -> None:
     otherpid = subprocess.getoutput("pgrep -f prime-indicator")  # type:bytes
     if otherpid:
         otherpid = str(otherpid)  # type:str
@@ -324,5 +329,21 @@ if __name__ == "__main__":
                         os.kill(pid, signal.SIGKILL)
                     except ProcessLookupError:
                         pass
-    indicator = Indicator()
-    indicator.execute()
+
+def run() -> None:
+    Indicator().execute()
+
+def restart() -> None:
+    
+
+if __name__ == "__main__":
+
+    # If nvidia-prime isn't installed or isn't supported, exit cleanly
+    if not os.path.exists(NVIDIA_SETTINGS_PATH) or not os.path.exists(PRIME_SELECT_PATH):
+        sys.exit(0)
+
+    if subprocess.getoutput("prime-supported 2>/dev/null") != "yes":
+        sys.exit(0)
+
+    kill_other_instances()
+    run()
