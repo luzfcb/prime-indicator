@@ -1,0 +1,66 @@
+{
+	"show_reboot_dialog": {
+	"it_IT": "Devi terminare la sessione per passare dalla GPU ",
+	"en_EN": "You need to log out to switch from the "
+	},
+	"msg_nvidia": {
+	"it_IT": "dedicata NVIDIA",
+	"en_EN": "dedicated NVIDIA GPU"
+	},
+	"msg_intel": {
+	"it_IT": "integrata Intel",
+	"en_EN": "integrated Intel GPU"
+	},
+	"show_reboot_dialog2": {
+	"it_IT": " alla GPU ",
+	"en_EN": " to the "
+	},
+	"show_reboot_dialog3": {
+	"it_IT": ". Salva il tuo lavoro prima di premere il pulsante 'Log Out'.",
+	"en_EN": ". Save your work before clicking the Log Out button below."
+	},
+	"renderer_string": {
+	"it_IT": "In uso",
+	"en_EN": "Using"
+	},
+	"switch_in_use": {
+	"it_IT": "Cambia velocemente scheda grafica ...",
+	"en_EN": "Quick switch graphics ..."
+	},
+	"toggle_power_management_enable": {
+	"it_IT": "Abilita gestione dell'alimentazione GPU NVIDIA",
+	"en_EN": "Enable NVIDIA GPU Power Management"
+	},
+	"nv_power_string": {
+	"it_IT": "La GPU NVIDIA è ",
+	"en_EN": "NVIDIA GPU is powered "
+	},
+	"nv_power_string_on": {
+	"it_IT": "accesa",
+	"en_EN": "ON"
+	},
+	"nv_power_string_off": {
+	"it_IT": "spenta",
+	"en_EN": "OFF"
+	},
+	"nv_power_switch_string": {
+	"it_IT": "Forza la GPU NVIDIA ad ",
+	"en_EN": "Force NVIDIA GPU to power "
+	},
+	"nv_power_switch_string_on": {
+	"it_IT": "accendersi",
+	"en_EN": "turn on"
+	},
+	"nv_power_switch_string_off": {
+	"it_IT": "spegnersi",
+	"en_EN": "turn off"
+	},
+	"run_nvidia_settings": {
+	"it_IT": "Apri impostazioni NVIDIA",
+	"en_EN": "Open NVIDIA Settings"
+	},
+	"quit": {
+	"it_IT": "Esci",
+	"en_EN": "Quit"
+	}
+}
