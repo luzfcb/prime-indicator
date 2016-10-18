@@ -63,7 +63,7 @@ I've added some icon options! Edit the config file which resides in `$HOME/.conf
 * `theme-default`: uses icons provided by the icon theme you're using. Falls back to the color option if none is provided (default)
 * `symbolic`: attempts to color the icons based on the GTK theme the system is using (depends on the theme's configuration, might not work at all)
 * `color`: full color icons (blue Intel logo and green NVIDIA logo)
-* `custom(<RGB Hex Color Code>)` [Not implemented yet]: allows you to determine the color the icons should have using hexadecimal RGB values in the #`RR``GG``BB` format. You can select the color you want using many different utilities such as this [HTML Color Picker](http://www.w3schools.com/colors/colors_picker.asp). Example: `custom(#bebebe)` colors the icons gray.
+* `custom(<RGB Hex Color Code>)`: allows you to determine the color the icons should have using hexadecimal RGB values in the #`RR``GG``BB` format. You can select the color you want using many different utilities such as this [HTML Color Picker](http://www.w3schools.com/colors/colors_picker.asp). Example: `custom(#bebebe)` colors the icons gray.
 
 
 Installation
