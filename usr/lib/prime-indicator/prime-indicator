@@ -68,6 +68,13 @@ class Indicator:
             elif self.theme_icons == "symbolic":
                 self.create_themed_icons()
                 self.icon_name = "prime-indicator-nvidia-symbolic-themed"
+            elif self.theme_icons.startswith("custom"):
+                result = re.search('custom\((.*)\)', self.theme_icons)
+                self.custom_color = result.group(1)
+                if not re.compile('^#([a-fA-F0-9]{2}){3}$').match(self.custom_color):
+                    self.custom_color = None
+                self.create_themed_icons()
+                self.icon_name = "prime-indicator-nvidia-symbolic-themed"
             else:
                 self.icon_name = "nvidia"
             self.icon_tooltip_text = "Active graphics card: NVIDIA"
@@ -80,7 +87,11 @@ class Indicator:
                 self.icon_name = "prime-indicator-intel-symbolic-themed"
             elif self.theme_icons.startswith("custom"):
                 result = re.search('custom\((.*)\)', self.theme_icons)
-                self.custom_color = result.result.group(1)
+                self.custom_color = result.group(1)
+                if not re.compile('^#([a-fA-F0-9]{2}){3}$').match(self.custom_color):
+                    self.custom_color = None
+                self.create_themed_icons()
+                self.icon_name = "prime-indicator-intel-symbolic-themed"
             else:
                 self.icon_name = "intel"
             self.icon_tooltip_text = "Active graphics card: Intel"
@@ -334,7 +345,7 @@ def run() -> None:
     Indicator().execute()
 
 def restart() -> None:
-    
+    os.execv(__file__, sys.argv)
 
 if __name__ == "__main__":
 
