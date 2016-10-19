@@ -58,7 +58,7 @@ class Indicator:
 
         if self.active_gpu == "nvidia":
             if self.theme_icons == "color":
-                self.icon_name = "prime-indicator-symbolic"
+                self.icon_name = "prime-indicator-nvidia"
             elif self.theme_icons == "symbolic":
                 self.create_themed_icons()
                 self.icon_name = "prime-indicator-nvidia-symbolic-themed"
