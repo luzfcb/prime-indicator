@@ -69,10 +69,7 @@ class Indicator:
                 self.create_themed_icons()
                 self.icon_name = "prime-indicator-nvidia-symbolic-themed"
             elif self.theme_icons.startswith("custom"):
-                result = re.search('custom\((.*)\)', self.theme_icons)
-                self.custom_color = result.group(1)
-                if not re.compile('^#([a-fA-F0-9]{2}){3}$').match(self.custom_color):
-                    self.custom_color = None
+                self.custom_color = re.search('^custom\((.*)\)$', self.theme_icons).group(1)
                 self.create_themed_icons()
                 self.icon_name = "prime-indicator-nvidia-symbolic-themed"
             else:
