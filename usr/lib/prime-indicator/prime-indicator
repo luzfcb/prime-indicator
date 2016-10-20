@@ -22,10 +22,15 @@
 
 import sys
 import os
+import re
 import signal
 import subprocess
 import configparser
-from typing import List
+
+# Uncomment the following import if you want to enable type hinting
+# and you're running Python >3.5, or you installed the typing package
+# using pip.
+# from typing import List 
 
 import gi.repository
 
@@ -42,6 +47,11 @@ CONFIG_PATH = HOME_DIR + "/.config/prime-indicator/prime-indicator.cfg"
 TEMP_ICON_PATH = HOME_DIR + "/.config/prime-indicator/icons-symbolic"
 PRIME_SELECT_PATH = "/usr/bin/prime-select"
 NVIDIA_SETTINGS_PATH = "/usr/bin/nvidia-settings"
+PRIME_INDICATOR_PREFIX = "prime-indicator-"
+SYMBOLIC_SUFFIX = "-symbolic"
+THEMED_SUFFIX = "-themed"
+NVIDIA = "nvidia"
+INTEL = "intel"
 
 
 class Indicator:
@@ -55,26 +65,18 @@ class Indicator:
         self.icon_path = LIB_PATH + "/icons"
         self.active_gpu = subprocess.getoutput("prime-select query")  # type:str
         self.theme_icons = self.config.get("Appearance", "iconset")  # type:str
-
-        if self.active_gpu == "nvidia":
+        self.custom_color = None
+        
+        if self.active_gpu in [INTEL, NVIDIA]:
+            self.icon_name = self.active_gpu
             if self.theme_icons == "color":
-                self.icon_name = "prime-indicator-nvidia"
-            elif self.theme_icons == "symbolic":
-                self.create_themed_icons()
-                self.icon_name = "prime-indicator-nvidia-symbolic-themed"
+                self.icon_name = PRIME_INDICATOR_PREFIX + self.icon_name
             else:
-                self.icon_name = "nvidia"
-            self.icon_tooltip_text = "Active graphics card: NVIDIA"
-
-        elif self.active_gpu == "intel":
-            if self.theme_icons == "color":
-                self.icon_name = "prime-indicator-intel"
-            elif self.theme_icons == "symbolic":
+                self.icon_name = PRIME_INDICATOR_PREFIX + self.icon_name + SYMBOLIC_SUFFIX + THEMED_SUFFIX
+                if self.theme_icons.startswith("custom"):
+                    self.custom_color = re.search("custom\((.*)\)", self.theme_icons).group(1)
                 self.create_themed_icons()
-                self.icon_name = "prime-indicator-intel-symbolic-themed"
-            else:
-                self.icon_name = "intel"
-            self.icon_tooltip_text = "Active graphics card: Intel"
+            self.icon_tooltip_text = "Active graphics card: " + ("Intel" if self.active_gpu == INTEL else "NVIDIA")
         else:
             self.icon_name = "dialog-error"
             self.icon_tooltip_text = "Active graphics card: " + self.active_gpu
@@ -106,10 +108,10 @@ class Indicator:
         self.menu.append(self.switch_power_management)
 
         self.set_nv_pm_labels()
-        if self.active_gpu in ["intel", "nvidia"]:
+        if self.active_gpu in [INTEL, NVIDIA]:
             switch_in_use.show()
             separator_in_use.show()
-            if self.active_gpu == "intel":
+            if self.active_gpu == INTEL:
                 self.toggle_power_management_enable.show()
                 if self.pm_enabled:
                     self.info_power_management.show()
@@ -143,22 +145,24 @@ class Indicator:
 
     def create_themed_icons(self):
         window = Gtk.Window()  # type:Gtk.Window
-        style_context = window.get_style_context()
-        style_fg_color = style_context.lookup_color('fg_color')  # type:tuple
-        if style_fg_color[0]:
-            fg_color_str = "#{r:02x}{g:02x}{b:02x}".format(r=int(style_fg_color[1].red * 255),
-                                                           g=int(style_fg_color[1].green * 255),
-                                                           b=int(style_fg_color[1].blue * 255))
+        fg_color_str = "#bebebe"
+        if self.custom_color:
+            fg_color_str = self.custom_color
         else:
-            fg_color_str = "#bebebe"
+            style_context = window.get_style_context()
+            style_fg_color = style_context.lookup_color('fg_color')  # type:tuple
+            if style_fg_color[0]:
+                fg_color_str = "#{r:02x}{g:02x}{b:02x}".format(r=int(style_fg_color[1].red * 255),
+                                                               g=int(style_fg_color[1].green * 255),
+                                                               b=int(style_fg_color[1].blue * 255))
 
         os.makedirs(TEMP_ICON_PATH, exist_ok=True)
-        with open(LIB_PATH + "/icons/prime-indicator-nvidia-symbolic.svg", "r") as fin:
-            with open(TEMP_ICON_PATH + "/prime-indicator-nvidia-symbolic-themed.svg", "w") as fout:
+        with open(LIB_PATH + "/icons/" + PRIME_INDICATOR_PREFIX + NVIDIA + SYMBOLIC_SUFFIX + ".svg", "r") as fin:
+            with open(TEMP_ICON_PATH + "/" + PRIME_INDICATOR_PREFIX + NVIDIA + SYMBOLIC_SUFFIX + THEMED_SUFFIX + ".svg", "w") as fout:
                 for line in fin:
                     fout.write(line.replace("#bebebe", fg_color_str))
-        with open(LIB_PATH + "/icons/prime-indicator-intel-symbolic.svg", "r") as fin:
-            with open(TEMP_ICON_PATH + "/prime-indicator-intel-symbolic-themed.svg", "w") as fout:
+        with open(LIB_PATH + "/icons/" + PRIME_INDICATOR_PREFIX + INTEL + SYMBOLIC_SUFFIX + ".svg", "r") as fin:
+            with open(TEMP_ICON_PATH + "/" + PRIME_INDICATOR_PREFIX + INTEL + SYMBOLIC_SUFFIX + THEMED_SUFFIX + ".svg", "w") as fout:
                 for line in fin:
                     fout.write(line.replace("#bebebe", fg_color_str))
 
@@ -180,8 +184,10 @@ class Indicator:
         else:
             try:
                 self.config.read(CONFIG_PATH)
-                if not self.config.get("Appearance", "iconset") in ["symbolic", "color", "theme-default"] or \
-                        not self.config.get("PowerManagement", "enabled") in ["true", "false"]:
+                iconset = self.config.get("Appearance", "iconset")
+                if iconset not in ["symbolic", "color", "theme-default"] and \
+                        not re.search('^custom\(#([a-fA-F0-9]{2}){3}\)$', iconset) or \
+                        self.config.get("PowerManagement", "enabled") not in ["true", "false"]:
                     self.write_default_config()
             except (configparser.NoSectionError, configparser.NoOptionError):
                 self.write_default_config()
@@ -192,7 +198,7 @@ class Indicator:
             "PowerManagement", "enabled", str(self.pm_enabled))
         with open(CONFIG_PATH, "w") as configfile:
             self.config.write(configfile)
-        if self.pm_enabled and self.active_gpu == "intel":
+        if self.pm_enabled and self.active_gpu == INTEL:
             self.info_power_management.show()
             self.switch_power_management.show()
         else:
@@ -215,6 +221,7 @@ class Indicator:
 
         if env.startswith("xfce"):
             os.system("xfce4-session-logout --logout")
+            restart()
         elif env.startswith("kde"):
             os.system("qdbus org.kde.ksmserver /KSMServer logout 0 0 0")
         elif env.startswith("lxde"):
@@ -235,6 +242,7 @@ class Indicator:
             dialog = Gtk.MessageDialog(None, Gtk.DIALOG_MODAL, Gtk.MESSAGE_ERROR, Gtk.BUTTONS_OK, message)
             dialog.set_deletable(False)
             dialog.run()
+            restart()
 
     def renderer_string(self) -> str:
         out = subprocess.getoutput("glxinfo | grep 'OpenGL renderer string'")  # type:str
@@ -252,10 +260,8 @@ class Indicator:
         return out.lower().endswith("on")
 
     def switch_gpu(self) -> None:
-        if self.active_gpu == "intel":
-            os.system(SCRIPT_CMD + " nvidia")
-        elif self.active_gpu == "nvidia":
-            os.system(SCRIPT_CMD + " intel")
+        if self.active_gpu in [INTEL, NVIDIA]:
+            os.system(SCRIPT_CMD + " " + (NVIDIA if self.active_gpu == INTEL else INTEL))
 
     def switch_nv_power(self, dude) -> None:
         if self.is_nvidia_on():
@@ -282,8 +288,8 @@ class Indicator:
         msg_nvidia = "dedicated NVIDIA GPU"
         msg_intel = "integrated Intel GPU"
         message = "You need to log out to switch from the " + \
-                  (msg_intel if (self.active_gpu == "intel") else msg_nvidia) + \
-                  " to the " + (msg_nvidia if (self.active_gpu == "intel") else msg_intel) + \
+                  (msg_intel if (self.active_gpu == INTEL) else msg_nvidia) + \
+                  " to the " + (msg_nvidia if (self.active_gpu == INTEL) else msg_intel) + \
                   ". Save your work before clicking the Log Out button below."
         dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.MODAL, Gtk.MessageType.INFO,
                                    Gtk.ButtonsType.NONE, message)
@@ -301,16 +307,8 @@ class Indicator:
             self.switch_gpu()
             self.logout()
 
-
-if __name__ == "__main__":
-
-    # If nvidia-prime isn't installed or isn't supported, exit cleanly
-    if not os.path.exists(NVIDIA_SETTINGS_PATH) or not os.path.exists(PRIME_SELECT_PATH):
-        sys.exit(0)
-
-    if subprocess.getoutput("prime-supported 2>/dev/null") != "yes":
-        sys.exit(0)
-
+            
+def kill_other_instances() -> None:
     otherpid = subprocess.getoutput("pgrep -f prime-indicator")  # type:bytes
     if otherpid:
         otherpid = str(otherpid)  # type:str
@@ -324,5 +322,21 @@ if __name__ == "__main__":
                         os.kill(pid, signal.SIGKILL)
                     except ProcessLookupError:
                         pass
-    indicator = Indicator()
-    indicator.execute()
+
+def run() -> None:
+    Indicator().execute()
+
+def restart() -> None:
+    os.execv(__file__, sys.argv)
+
+if __name__ == "__main__":
+
+    # If nvidia-prime isn't installed or isn't supported, exit cleanly
+    if not os.path.exists(NVIDIA_SETTINGS_PATH) or not os.path.exists(PRIME_SELECT_PATH):
+        sys.exit(0)
+
+    if subprocess.getoutput("prime-supported 2>/dev/null") != "yes":
+        sys.exit(0)
+
+    kill_other_instances()
+    run()
