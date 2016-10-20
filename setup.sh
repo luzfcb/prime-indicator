@@ -28,13 +28,15 @@ AUTOSTART_FILE="/etc/xdg/autostart/prime-indicator.desktop"
 
 cp -R usr /
 cp -R etc /
-chown -R root:root /usr/lib/prime-indicator
+chown -R root:root ${LIB_DIR}
+chmod 755 ${LIB_DIR}
+chmod 755 ${LIB_DIR}/icons
+chmod 644 ${LIB_DIR}/icons/*
 chmod 755 ${LIB_DIR}/prime-indicator
 chmod 755 ${LIB_DIR}/gpuswitcher
-chmod -R a+r ${LIB_DIR}/icons/*
 chown root:root ${SUDOERS_FILE}
 chmod 644 ${SUDOERS_FILE}
-chown ${SUDO_USER}:${SUDO_USER} ${AUTOSTART_FILE}
+chown root:root ${AUTOSTART_FILE}
 chmod 644 ${AUTOSTART_FILE}
 
 echo "Autostart PRIME Indicator?"

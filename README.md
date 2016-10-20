@@ -1,7 +1,7 @@
 PRIME Indicator
 ===============
 Indicator applet for Ubuntu 14.04 and higher laptop users with NVIDIA/Intel hybrid GPUs,
-allowing quick switch between the GPUs in matter of seconds.
+allowing quick switch between the GPUs in a matter of seconds.
 It has been tested on Ubuntu 16.04 only, but should be working just as well
 on any Ubuntu distribution more recent than 12.04, including Xubuntu, Kubuntu and Lubuntu flavours.
 Ubuntu 12.04 users should also have no problems, as long if installing with the newest hardware enablement stack.
