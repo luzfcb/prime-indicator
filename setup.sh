@@ -36,7 +36,7 @@ chmod 755 ${LIB_DIR}/prime-indicator
 chmod 755 ${LIB_DIR}/gpuswitcher
 chown root:root ${SUDOERS_FILE}
 chmod 644 ${SUDOERS_FILE}
-chown ${SUDO_USER}:${SUDO_USER} ${AUTOSTART_FILE}
+chown root:root ${AUTOSTART_FILE}
 chmod 644 ${AUTOSTART_FILE}
 
 echo "Autostart PRIME Indicator?"
