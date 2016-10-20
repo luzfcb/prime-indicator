@@ -1,4 +1,4 @@
-PRIME Indicator
+PRIME Indicator Plus
 ===============
 Indicator applet for Ubuntu 14.04 and higher laptop users with NVIDIA/Intel hybrid GPUs,
 allowing quick switch between the GPUs in a matter of seconds.
