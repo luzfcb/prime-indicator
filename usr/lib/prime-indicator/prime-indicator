@@ -66,7 +66,7 @@ class Indicator:
         self.active_gpu = subprocess.getoutput("prime-select query")  # type:str
         self.theme_icons = self.config.get("Appearance", "iconset")  # type:str
         self.custom_color = None
-        
+
         if self.active_gpu in [INTEL, NVIDIA]:
             self.icon_name = self.active_gpu
             if self.theme_icons == "color":
@@ -158,11 +158,13 @@ class Indicator:
 
         os.makedirs(TEMP_ICON_PATH, exist_ok=True)
         with open(LIB_PATH + "/icons/" + PRIME_INDICATOR_PREFIX + NVIDIA + SYMBOLIC_SUFFIX + ".svg", "r") as fin:
-            with open(TEMP_ICON_PATH + "/" + PRIME_INDICATOR_PREFIX + NVIDIA + SYMBOLIC_SUFFIX + THEMED_SUFFIX + ".svg", "w") as fout:
+            with open(TEMP_ICON_PATH + "/" + PRIME_INDICATOR_PREFIX + NVIDIA + SYMBOLIC_SUFFIX + THEMED_SUFFIX + ".svg",
+                      "w") as fout:
                 for line in fin:
                     fout.write(line.replace("#bebebe", fg_color_str))
         with open(LIB_PATH + "/icons/" + PRIME_INDICATOR_PREFIX + INTEL + SYMBOLIC_SUFFIX + ".svg", "r") as fin:
-            with open(TEMP_ICON_PATH + "/" + PRIME_INDICATOR_PREFIX + INTEL + SYMBOLIC_SUFFIX + THEMED_SUFFIX + ".svg", "w") as fout:
+            with open(TEMP_ICON_PATH + "/" + PRIME_INDICATOR_PREFIX + INTEL + SYMBOLIC_SUFFIX + THEMED_SUFFIX + ".svg",
+                      "w") as fout:
                 for line in fin:
                     fout.write(line.replace("#bebebe", fg_color_str))
 
@@ -187,7 +189,7 @@ class Indicator:
                 iconset = self.config.get("Appearance", "iconset")
                 if iconset not in ["symbolic", "color", "theme-default"] and \
                         not re.search('^custom\(#([a-fA-F0-9]{2}){3}\)$', iconset) or \
-                        self.config.get("PowerManagement", "enabled") not in ["true", "false"]:
+                                self.config.get("PowerManagement", "enabled") not in ["true", "false"]:
                     self.write_default_config()
             except (configparser.NoSectionError, configparser.NoOptionError):
                 self.write_default_config()
@@ -307,7 +309,7 @@ class Indicator:
             self.switch_gpu()
             self.logout()
 
-            
+
 def kill_other_instances() -> None:
     otherpid = subprocess.getoutput("pgrep -f prime-indicator")  # type:bytes
     if otherpid:
@@ -323,11 +325,14 @@ def kill_other_instances() -> None:
                     except ProcessLookupError:
                         pass
 
+
 def run() -> None:
     Indicator().execute()
 
+
 def restart() -> None:
     os.execv(__file__, sys.argv)
+
 
 if __name__ == "__main__":
 
