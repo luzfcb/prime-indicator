@@ -23,7 +23,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 LIB_DIR="/usr/lib/prime-indicator"
-SUDOERS_FILE="/etc/sudoers.d/prime-indicator-sudoers"
+SUDOERS_FILE="/etc/sudoers.d/99-prime-indicator-sudoers"
 AUTOSTART_FILE="/etc/xdg/autostart/prime-indicator.desktop"
 
 cp -R usr /
@@ -35,7 +35,7 @@ chmod 644 ${LIB_DIR}/icons/*
 chmod 755 ${LIB_DIR}/prime-indicator
 chmod 755 ${LIB_DIR}/gpuswitcher
 chown root:root ${SUDOERS_FILE}
-chmod 644 ${SUDOERS_FILE}
+chmod 400 ${SUDOERS_FILE}
 chown root:root ${AUTOSTART_FILE}
 chmod 644 ${AUTOSTART_FILE}
 

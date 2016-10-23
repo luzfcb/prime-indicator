@@ -23,7 +23,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 LIB_DIR="/usr/lib/prime-indicator"
-SUDOERS_FILE="/etc/sudoers.d/prime-indicator-sudoers"
+SUDOERS_FILE="/etc/sudoers.d/99-prime-indicator-sudoers"
 AUTOSTART_FILE="/etc/xdg/autostart/prime-indicator.desktop"
 
 rm -f ${SUDOERS_FILE}
